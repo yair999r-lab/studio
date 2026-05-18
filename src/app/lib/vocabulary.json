@@ -1,32 +1,217 @@
 {
   "weeks": [
     {
-      "week_id": 1,
-      "title": "Week 1: Basics",
+      "week_id": 3,
+      "title": "Week 3",
       "words": [
-        { "id": "w1_1", "english": "window", "hebrew": "חלון", "category": "objects" },
-        { "id": "w1_2", "english": "run", "hebrew": "לרוץ", "category": "verbs" },
-        { "id": "w1_3", "english": "dog", "hebrew": "כלב", "category": "animals" },
-        { "id": "w1_4", "english": "cat", "hebrew": "חתול", "category": "animals" },
-        { "id": "w1_5", "english": "jump", "hebrew": "לקפוץ", "category": "verbs" },
-        { "id": "w1_6", "english": "fast", "hebrew": "מהיר", "category": "adjectives" },
-        { "id": "w1_7", "english": "slow", "hebrew": "איטי", "category": "adjectives" },
-        { "id": "w1_8", "english": "big", "hebrew": "גדול", "category": "adjectives" },
-        { "id": "w1_9", "english": "small", "hebrew": "קטן", "category": "adjectives" },
-        { "id": "w1_10", "english": "house", "hebrew": "בית", "category": "places" }
+        { "id": "w3_1", "english": "deep", "hebrew": "עמוק", "category": "adjectives", "citation": "[cite: 1]" },
+        { "id": "w3_2", "english": "auction", "hebrew": "מכירה פומבית", "category": "nouns", "citation": "" },
+        { "id": "w3_3", "english": "purchase", "hebrew": "קניה", "category": "nouns", "citation": "[cite: 3, 4]" },
+        { "id": "w3_4", "english": "minority", "hebrew": "מיעוט", "category": "nouns", "citation": "[cite: 5]" },
+        { "id": "w3_5", "english": "lowest", "hebrew": "נמוך ביותר", "category": "adjectives", "citation": "[cite: 6]" },
+        { "id": "w3_6", "english": "appliances", "hebrew": "מכשירי חשמל", "category": "nouns", "citation": "[cite: 7]" },
+        { "id": "w3_7", "english": "bulging", "hebrew": "בולט / תפוח", "category": "adjectives", "citation": "[cite: 9]" },
+        { "id": "w3_8", "english": "antique", "hebrew": "עתיק", "category": "adjectives", "citation": "[cite: 10]" },
+        { "id": "w3_9", "english": "furniture", "hebrew": "רהיטים", "category": "nouns", "citation": "[cite: 11]" },
+        { "id": "w3_10", "english": "odds and ends", "hebrew": "שאריות, פריטים קטנים", "category": "nouns", "citation": "[cite: 12]" },
+        { "id": "w3_11", "english": "nowadays", "hebrew": "כיום", "category": "adverbs", "citation": "[cite: 13]" },
+        { "id": "w3_12", "english": "bid", "hebrew": "הצעת מחיר", "category": "nouns", "citation": "[cite: 14]" },
+        { "id": "w3_13", "english": "collectibles", "hebrew": "פריטי אספנות", "category": "nouns", "citation": "" },
+        { "id": "w3_14", "english": "jewelry", "hebrew": "תכשיטים", "category": "nouns", "citation": "[cite: 16]" },
+        { "id": "w3_15", "english": "earring and chains", "hebrew": "עגילים ושרשראות", "category": "nouns", "citation": "[cite: 17]" },
+        { "id": "w3_16", "english": "ridiculously", "hebrew": "בצורה מגוחכת", "category": "adverbs", "citation": "[cite: 18]" },
+        { "id": "w3_17", "english": "literally", "hebrew": "פשוטו כמשמעו", "category": "adverbs", "citation": "[cite: 19]" },
+        { "id": "w3_18", "english": "items", "hebrew": "פריטים", "category": "nouns", "citation": "[cite: 20]" },
+        { "id": "w3_19", "english": "barrier", "hebrew": "מחסום", "category": "nouns", "citation": "[cite: 21]" },
+        { "id": "w3_20", "english": "exists", "hebrew": "קיים", "category": "verbs", "citation": "[cite: 22]" },
+        { "id": "w3_21", "english": "perhaps", "hebrew": "ייתכן", "category": "adverbs", "citation": "[cite: 23]" },
+        { "id": "w3_22", "english": "habits", "hebrew": "הרגלים", "category": "nouns", "citation": "[cite: 24]" },
+        { "id": "w3_23", "english": "obsession", "hebrew": "אובססיה", "category": "nouns", "citation": "[cite: 25]" },
+        { "id": "w3_24", "english": "unfortunate", "hebrew": "מצער", "category": "adjectives", "citation": "[cite: 26]" },
+        { "id": "w3_25", "english": "receive", "hebrew": "לקבל", "category": "verbs", "citation": "[cite: 27]" },
+        { "id": "w3_26", "english": "unscrupulous", "hebrew": "חסר מצפון", "category": "adjectives", "citation": "[cite: 28]" },
+        { "id": "w3_27", "english": "customer", "hebrew": "לקוח", "category": "nouns", "citation": "[cite: 29]" },
+        { "id": "w3_28", "english": "addiction", "hebrew": "התמכרות", "category": "nouns", "citation": "[cite: 30]" },
+        { "id": "w3_29", "english": "consequently", "hebrew": "כתוצאה מכך", "category": "adverbs", "citation": "[cite: 31]" },
+        { "id": "w3_30", "english": "proceed", "hebrew": "להתקדם", "category": "verbs", "citation": "[cite: 32]" },
+        { "id": "w3_31", "english": "due", "hebrew": "ראוי, נאות", "category": "adjectives", "citation": "[cite: 33]" },
+        { "id": "w3_32", "english": "arise", "hebrew": "להתעורר, לנבוע", "category": "verbs", "citation": "[cite: 34]" },
+        { "id": "w3_33", "english": "instructed", "hebrew": "מודרך", "category": "verbs", "citation": "[cite: 35]" },
+        { "id": "w3_34", "english": "sum up", "hebrew": "לסכם", "category": "verbs", "citation": "[cite: 36]" },
+        { "id": "w3_35", "english": "resist", "hebrew": "להתנגד", "category": "verbs", "citation": "[cite: 37]" },
+        { "id": "w3_36", "english": "opportunity", "hebrew": "הזדמנות", "category": "nouns", "citation": "[cite: 38]" },
+        { "id": "w3_37", "english": "brand", "hebrew": "מותג", "category": "nouns", "citation": "[cite: 39]" },
+        { "id": "w3_38", "english": "wonder", "hebrew": "תוהה", "category": "verbs", "citation": "[cite: 40, 41]" },
+        { "id": "w3_39", "english": "faithful", "hebrew": "חדור אמונה, נאמן", "category": "adjectives", "citation": "[cite: 42]" },
+        { "id": "w3_40", "english": "attendees", "hebrew": "משתתפים", "category": "nouns", "citation": "" }
       ],
       "sentences": [
         {
-          "id": "s1_1",
-          "text_with_blanks": "I open the ___ to get fresh air.",
-          "translation_hebrew": "אני פותח את החלון כדי לקבל אוויר צח.",
+          "id": "s3_1",
+          "text_with_blanks": "I will place a ___ on this beautiful antique clock at the ___.",
+          "translation_hebrew": "אני אגיש הצעת מחיר על השעון העתיק והיפה הזה במכירה הפומבית.",
           "answers": [
-            { "word": "window", "is_correct": true },
-            { "word": "table", "is_correct": false },
-            { "word": "door", "is_correct": false },
-            { "word": "chair", "is_correct": false }
+            { "words": ["bid", "auction"], "is_correct": true },
+            { "words": ["brand", "customer"], "is_correct": false },
+            { "words": ["opportunity", "purchase"], "is_correct": false },
+            { "words": ["barrier", "furniture"], "is_correct": false }
           ],
-          "glossary": { "open": "פותח", "fresh": "רענן/צח" }
+          "glossary": { "place": "להניח/להגיש", "beautiful": "יפה", "clock": "שעון" }
+        },
+        {
+          "id": "s3_2",
+          "text_with_blanks": "He has an unhealthy ___ with buying expensive ___.",
+          "translation_hebrew": "יש לו אובססיה לא בריאה לקניית תכשיטים יקרים.",
+          "answers": [
+            { "words": ["obsession", "jewelry"], "is_correct": true },
+            { "words": ["opportunity", "appliances"], "is_correct": false },
+            { "words": ["addiction", "barrier"], "is_correct": false },
+            { "words": ["customer", "items"], "is_correct": false }
+          ],
+          "glossary": { "unhealthy": "לא בריא", "buying": "לקנות", "expensive": "יקר" }
+        }
+      ]
+    },
+    {
+      "week_id": 4,
+      "title": "Week 4",
+      "words": [
+        { "id": "w4_1", "english": "kneading", "hebrew": "לישה", "category": "verbs", "citation": "[cite: 44]" },
+        { "id": "w4_2", "english": "mud", "hebrew": "טיט, רפש", "category": "nouns", "citation": "[cite: 45]" },
+        { "id": "w4_3", "english": "tiny", "hebrew": "זעיר, קטנטן", "category": "adjectives", "citation": "[cite: 46]" },
+        { "id": "w4_4", "english": "shape", "hebrew": "צורה, לעצב", "category": "verbs", "citation": "[cite: 47]" },
+        { "id": "w4_5", "english": "bricks", "hebrew": "לבנים", "category": "nouns", "citation": "[cite: 48]" },
+        { "id": "w4_6", "english": "advance", "hebrew": "לקדם, מקדמה", "category": "verbs", "citation": "[cite: 49]" },
+        { "id": "w4_7", "english": "wages", "hebrew": "משכורת", "category": "nouns", "citation": "[cite: 50]" },
+        { "id": "w4_8", "english": "kiln", "hebrew": "כבשן", "category": "nouns", "citation": "[cite: 51]" },
+        { "id": "w4_9", "english": "debt", "hebrew": "משא, חוב", "category": "nouns", "citation": "[cite: 52]" },
+        { "id": "w4_10", "english": "surveys", "hebrew": "סקרים", "category": "nouns", "citation": "[cite: 53]" },
+        { "id": "w4_11", "english": "loan", "hebrew": "הלוואה", "category": "nouns", "citation": "[cite: 54]" },
+        { "id": "w4_12", "english": "refugees", "hebrew": "פליטים", "category": "nouns", "citation": "[cite: 55]" },
+        { "id": "w4_13", "english": "reduce", "hebrew": "לצמצם, להפחית", "category": "verbs", "citation": "[cite: 56]" },
+        { "id": "w4_14", "english": "amount", "hebrew": "כמות", "category": "nouns", "citation": "[cite: 57]" },
+        { "id": "w4_15", "english": "ceremonies", "hebrew": "טקסים", "category": "nouns", "citation": "[cite: 59]" },
+        { "id": "w4_16", "english": "treatment", "hebrew": "טיפול", "category": "nouns", "citation": "[cite: 60]" },
+        { "id": "w4_17", "english": "requirement", "hebrew": "דרישות", "category": "nouns", "citation": "[cite: 61]" },
+        { "id": "w4_18", "english": "illegal", "hebrew": "לא חוקי", "category": "adjectives", "citation": "[cite: 62]" },
+        { "id": "w4_19", "english": "exaggeration", "hebrew": "הגזמה", "category": "nouns", "citation": "[cite: 63]" },
+        { "id": "w4_20", "english": "trade-unions", "hebrew": "איגודי עובדים", "category": "nouns", "citation": "[cite: 64]" },
+        { "id": "w4_21", "english": "trapped", "hebrew": "לכוד, ליפול בפח", "category": "adjectives", "citation": "[cite: 65]" },
+        { "id": "w4_22", "english": "commissioner", "hebrew": "נציב, חבר ועדה", "category": "nouns", "citation": "[cite: 66]" },
+        { "id": "w4_23", "english": "solve", "hebrew": "לפתור", "category": "verbs", "citation": "[cite: 67]" },
+        { "id": "w4_24", "english": "denies", "hebrew": "מכחיש", "category": "verbs", "citation": "[cite: 68]" },
+        { "id": "w4_25", "english": "insist", "hebrew": "להתעקש", "category": "verbs", "citation": "[cite: 69]" },
+        { "id": "w4_26", "english": "poisonous", "hebrew": "רעיל", "category": "adjectives", "citation": "[cite: 70]" },
+        { "id": "w4_27", "english": "barefoot", "hebrew": "יחף", "category": "adjectives", "citation": "" },
+        { "id": "w4_28", "english": "convince", "hebrew": "לשכנע", "category": "verbs", "citation": "[cite: 72]" },
+        { "id": "w4_29", "english": "permission", "hebrew": "הרשאה", "category": "nouns", "citation": "[cite: 73]" },
+        { "id": "w4_30", "english": "accusations", "hebrew": "האשמות", "category": "nouns", "citation": "[cite: 74]" },
+        { "id": "w4_31", "english": "reject", "hebrew": "לדחות", "category": "verbs", "citation": "[cite: 75]" },
+        { "id": "w4_32", "english": "waive", "hebrew": "לוותר על", "category": "verbs", "citation": "[cite: 76]" },
+        { "id": "w4_33", "english": "instances", "hebrew": "מקרים", "category": "nouns", "citation": "[cite: 77]" },
+        { "id": "w4_34", "english": "mentioned", "hebrew": "הוזכר", "category": "verbs", "citation": "[cite: 78]" },
+        { "id": "w4_35", "english": "proper", "hebrew": "נאות, ראוי", "category": "adjectives", "citation": "[cite: 79]" },
+        { "id": "w4_36", "english": "conditions", "hebrew": "תנאים", "category": "nouns", "citation": "[cite: 80]" },
+        { "id": "w4_37", "english": "provided", "hebrew": "סיפק", "category": "verbs", "citation": "[cite: 81]" },
+        { "id": "w4_38", "english": "tone", "hebrew": "צליל, טון", "category": "nouns", "citation": "[cite: 82]" },
+        { "id": "w4_39", "english": "biased", "hebrew": "משוחד", "category": "adjectives", "citation": "[cite: 83, 84]" },
+        { "id": "w4_40", "english": "exposed", "hebrew": "חשוף", "category": "adjectives", "citation": "[cite: 85]" }
+      ],
+      "sentences": [
+        {
+          "id": "s4_1",
+          "text_with_blanks": "The workers demand fair ___ for working in such dangerous ___.",
+          "translation_hebrew": "הפועלים דורשים משכורת הוגנת על עבודה בתנאים כל כך מסוכנים.",
+          "answers": [
+            { "words": ["wages", "conditions"], "is_correct": true },
+            { "words": ["debt", "instances"], "is_correct": false },
+            { "words": ["loan", "accusations"], "is_correct": false },
+            { "words": ["amount", "surveys"], "is_correct": false }
+          ],
+          "glossary": { "demand": "דורשים", "fair": "הוגן", "dangerous": "מסוכן" }
+        },
+        {
+          "id": "s4_2",
+          "text_with_blanks": "It is ___ to force people to work barefoot in the ___.",
+          "translation_hebrew": "זה לא חוקי להכריח אנשים לעבוד יחפים בתוך הרפש.",
+          "answers": [
+            { "words": ["illegal", "mud"], "is_correct": true },
+            { "words": ["poisonous", "kiln"], "is_correct": false },
+            { "words": ["proper", "bricks"], "is_correct": false },
+            { "words": ["biased", "treatment"], "is_correct": false }
+          ],
+          "glossary": { "force": "להכריח", "people": "אנשים", "work": "לעבוד" }
+        }
+      ]
+    },
+    {
+      "week_id": 5,
+      "title": "Week 5",
+      "words": [
+        { "id": "w5_1", "english": "perform", "hebrew": "לבצע", "category": "verbs", "citation": "[cite: 86]" },
+        { "id": "w5_2", "english": "paralyzed", "hebrew": "משותק", "category": "adjectives", "citation": "[cite: 87]" },
+        { "id": "w5_3", "english": "arms", "hebrew": "זרועות", "category": "nouns", "citation": "[cite: 88]" },
+        { "id": "w5_4", "english": "fetch", "hebrew": "להביא", "category": "verbs", "citation": "[cite: 89]" },
+        { "id": "w5_5", "english": "scratch itches", "hebrew": "לגרד", "category": "verbs", "citation": "[cite: 90]" },
+        { "id": "w5_6", "english": "plenty", "hebrew": "שפע", "category": "nouns", "citation": "" },
+        { "id": "w5_7", "english": "comb", "hebrew": "לסרק", "category": "verbs", "citation": "[cite: 92]" },
+        { "id": "w5_8", "english": "hair", "hebrew": "שיער", "category": "nouns", "citation": "[cite: 93]" },
+        { "id": "w5_9", "english": "independent", "hebrew": "עצמאי", "category": "adjectives", "citation": "[cite: 94]" },
+        { "id": "w5_10", "english": "forced", "hebrew": "כפוי", "category": "adjectives", "citation": "[cite: 95]" },
+        { "id": "w5_11", "english": "nursing", "hebrew": "טיפול", "category": "nouns", "citation": "[cite: 96]" },
+        { "id": "w5_12", "english": "despair", "hebrew": "ייאוש", "category": "nouns", "citation": "[cite: 97]" },
+        { "id": "w5_13", "english": "helplessness", "hebrew": "חוסר אונים", "category": "nouns", "citation": "[cite: 98]" },
+        { "id": "w5_14", "english": "dormitories", "hebrew": "מעונות", "category": "nouns", "citation": "[cite: 99]" },
+        { "id": "w5_15", "english": "raising", "hebrew": "הרמה", "category": "verbs", "citation": "[cite: 100]" },
+        { "id": "w5_16", "english": "laser beam", "hebrew": "קרן לייזר", "category": "nouns", "citation": "[cite: 101]" },
+        { "id": "w5_17", "english": "graduating", "hebrew": "סיום למידה", "category": "verbs", "citation": "[cite: 103]" },
+        { "id": "w5_18", "english": "immense", "hebrew": "עצום", "category": "adjectives", "citation": "[cite: 104, 105]" },
+        { "id": "w5_19", "english": "amusing", "hebrew": "משעשע", "category": "adjectives", "citation": "[cite: 106]" },
+        { "id": "w5_20", "english": "contributors", "hebrew": "תורמים", "category": "nouns", "citation": "[cite: 107]" },
+        { "id": "w5_21", "english": "approximately", "hebrew": "בערך", "category": "adverbs", "citation": "[cite: 108]" },
+        { "id": "w5_22", "english": "companion", "hebrew": "בן לוויה / חבר", "category": "nouns", "citation": "[cite: 109]" },
+        { "id": "w5_23", "english": "pair", "hebrew": "זוג", "category": "nouns", "citation": "[cite: 110]" },
+        { "id": "w5_24", "english": "capable", "hebrew": "מסוגל / בעל יכולת", "category": "adjectives", "citation": "[cite: 111]" },
+        { "id": "w5_25", "english": "runs it", "hebrew": "להריץ / לנהל", "category": "verbs", "citation": "[cite: 112]" },
+        { "id": "w5_26", "english": "phrases", "hebrew": "ביטויים", "category": "nouns", "citation": "[cite: 113]" },
+        { "id": "w5_27", "english": "spent", "hebrew": "לבזבז", "category": "verbs", "citation": "[cite: 114]" },
+        { "id": "w5_28", "english": "organization", "hebrew": "ארגון", "category": "nouns", "citation": "" },
+        { "id": "w5_29", "english": "owners", "hebrew": "בעלים", "category": "nouns", "citation": "[cite: 116]" },
+        { "id": "w5_30", "english": "task", "hebrew": "מלאכה", "category": "nouns", "citation": "[cite: 117]" },
+        { "id": "w5_31", "english": "idea", "hebrew": "רעיון", "category": "nouns", "citation": "[cite: 118]" },
+        { "id": "w5_32", "english": "college", "hebrew": "מכללה", "category": "nouns", "citation": "[cite: 119]" },
+        { "id": "w5_33", "english": "program", "hebrew": "תוכנית", "category": "nouns", "citation": "[cite: 120]" },
+        { "id": "w5_34", "english": "respond", "hebrew": "תגובה", "category": "nouns", "citation": "[cite: 121]" },
+        { "id": "w5_35", "english": "institutions", "hebrew": "מוסדות", "category": "nouns", "citation": "[cite: 122]" },
+        { "id": "w5_36", "english": "applications", "hebrew": "יישומים", "category": "nouns", "citation": "[cite: 123]" },
+        { "id": "w5_37", "english": "human", "hebrew": "אדם / בן אנוש", "category": "nouns", "citation": "[cite: 124, 125]" },
+        { "id": "w5_38", "english": "accident", "hebrew": "תאונה", "category": "nouns", "citation": "[cite: 126]" },
+        { "id": "w5_39", "english": "objects", "hebrew": "חפצים", "category": "nouns", "citation": "[cite: 127]" }
+      ],
+      "sentences": [
+        {
+          "id": "s5_1",
+          "text_with_blanks": "After the terrible ___, the poor man was left ___ from the waist down.",
+          "translation_hebrew": "אחרי התאונה הנוראית, האיש המסכן נותר משותק מהמותניים ומטה.",
+          "answers": [
+            { "words": ["accident", "paralyzed"], "is_correct": true },
+            { "words": ["task", "independent"], "is_correct": false },
+            { "words": ["idea", "capable"], "is_correct": false },
+            { "words": ["program", "amusing"], "is_correct": false }
+          ],
+          "glossary": { "terrible": "נוראית", "poor": "מסכן", "waist down": "מהמותניים ומטה" }
+        },
+        {
+          "id": "s5_2",
+          "text_with_blanks": "My new dog is an amazing ___, he helps me ___ things that fall on the floor.",
+          "translation_hebrew": "הכלב החדש שלי הוא בן לוויה מדהים, הוא עוזר לי להביא דברים שנופלים על הרצפה.",
+          "answers": [
+            { "words": ["companion", "fetch"], "is_correct": true },
+            { "words": ["human", "perform"], "is_correct": false },
+            { "words": ["owners", "comb"], "is_correct": false },
+            { "words": ["contributors", "spent"], "is_correct": false }
+          ],
+          "glossary": { "amazing": "מדהים", "things": "דברים", "floor": "רצפה" }
         }
       ]
     }
