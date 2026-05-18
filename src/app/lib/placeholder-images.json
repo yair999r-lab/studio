@@ -1,0 +1,23 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-mascot",
+      "description": "A friendly learning mascot",
+      "imageUrl": "https://picsum.photos/seed/lexileap-mascot/600/600",
+      "imageHint": "friendly mascot"
+    },
+    {
+      "id": "study-room-bg",
+      "description": "Cozy library background",
+      "imageUrl": "https://picsum.photos/seed/study-room/1200/800",
+      "imageHint": "modern library"
+    },
+    {
+      "id": "arcade-bg",
+      "description": "Bright sky background for arcade",
+      "imageUrl": "https://picsum.photos/seed/sky-arcade/1200/800",
+      "imageHint": "blue sky"
+    }
+  ]
+}

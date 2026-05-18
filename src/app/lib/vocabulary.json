@@ -1,0 +1,77 @@
+
+{
+  "weeks": [
+    {
+      "id": 1,
+      "name": "Week 1: Animals & Actions",
+      "words": [
+        { "id": "w1_1", "english": "Dog", "hebrew": "כלב", "category": "animal", "week": 1 },
+        { "id": "w1_2", "english": "Cat", "hebrew": "חתול", "category": "animal", "week": 1 },
+        { "id": "w1_3", "english": "Lion", "hebrew": "אריה", "category": "animal", "week": 1 },
+        { "id": "w1_4", "english": "Elephant", "hebrew": "פיל", "category": "animal", "week": 1 },
+        { "id": "w1_5", "english": "Run", "hebrew": "לרוץ", "category": "verb", "week": 1 },
+        { "id": "w1_6", "english": "Jump", "hebrew": "לקפוץ", "category": "verb", "week": 1 },
+        { "id": "w1_7", "english": "Eat", "hebrew": "לאכול", "category": "verb", "week": 1 },
+        { "id": "w1_8", "english": "Sleep", "hebrew": "לישון", "category": "verb", "week": 1 },
+        { "id": "w1_9", "english": "Fast", "hebrew": "מהיר", "category": "adjective", "week": 1 },
+        { "id": "w1_10", "english": "Slow", "hebrew": "איטי", "category": "adjective", "week": 1 }
+      ],
+      "sentences": [
+        {
+          "id": "s1_1",
+          "text_with_blanks": "The ___ likes to ___ after the ball.",
+          "translation_hebrew": "הכלב אוהב לרוץ אחרי הכדור.",
+          "answers": [
+            { "words": ["dog", "run"], "is_correct": true },
+            { "words": ["cat", "sleep"], "is_correct": false },
+            { "words": ["lion", "jump"], "is_correct": false },
+            { "words": ["elephant", "eat"], "is_correct": false }
+          ],
+          "glossary": { "ball": "כדור", "after": "אחרי" }
+        },
+        {
+          "id": "s1_2",
+          "text_with_blanks": "The ___ is very ___ and loud.",
+          "translation_hebrew": "האריה מאוד מהיר ורועש.",
+          "answers": [
+            { "words": ["lion", "fast"], "is_correct": true },
+            { "words": ["cat", "slow"], "is_correct": false },
+            { "words": ["dog", "slow"], "is_correct": false },
+            { "words": ["elephant", "fast"], "is_correct": false }
+          ],
+          "glossary": { "loud": "רועש", "very": "מאוד" }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Week 2: Objects & Places",
+      "words": [
+        { "id": "w2_1", "english": "House", "hebrew": "בית", "category": "place", "week": 2 },
+        { "id": "w2_2", "english": "School", "hebrew": "בית ספר", "category": "place", "week": 2 },
+        { "id": "w2_3", "english": "Park", "hebrew": "פארק", "category": "place", "week": 2 },
+        { "id": "w2_4", "english": "Table", "hebrew": "שולחן", "category": "object", "week": 2 },
+        { "id": "w2_5", "english": "Chair", "hebrew": "כיסא", "category": "object", "week": 2 },
+        { "id": "w2_6", "english": "Book", "hebrew": "ספר", "category": "object", "week": 2 },
+        { "id": "w2_7", "english": "Read", "hebrew": "לקרוא", "category": "verb", "week": 2 },
+        { "id": "w2_8", "english": "Write", "hebrew": "לכתוב", "category": "verb", "week": 2 },
+        { "id": "w2_9", "english": "Big", "hebrew": "גדול", "category": "adjective", "week": 2 },
+        { "id": "w2_10", "english": "Small", "hebrew": "קטן", "category": "adjective", "week": 2 }
+      ],
+      "sentences": [
+        {
+          "id": "s2_1",
+          "text_with_blanks": "I go to ___ to ___ a new ___.",
+          "translation_hebrew": "אני הולך לבית הספר לקרוא ספר חדש.",
+          "answers": [
+            { "words": ["school", "read", "book"], "is_correct": true },
+            { "words": ["house", "write", "table"], "is_correct": false },
+            { "words": ["park", "run", "chair"], "is_correct": false },
+            { "words": ["school", "eat", "big"], "is_correct": false }
+          ],
+          "glossary": { "new": "חדש", "go": "הולך" }
+        }
+      ]
+    }
+  ]
+}
