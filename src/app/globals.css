@@ -37,7 +37,7 @@
     @apply bg-blue-600 text-white border-blue-800 hover:bg-blue-500;
   }
   .chunky-secondary {
-    @apply bg-sky-500 text-white border-sky-700 hover:bg-sky-400;
+    @apply bg-sky-500 text-white border-sky-400 border-sky-600;
   }
   .chunky-success {
     @apply bg-emerald-500 text-white border-emerald-700 hover:bg-emerald-400;
@@ -46,6 +46,22 @@
     @apply bg-rose-500 text-white border-rose-700 hover:bg-rose-400;
   }
   
+  /* Arcade Mode Physics */
+  .bubble-container {
+    @apply relative overflow-hidden w-full h-full;
+  }
+
+  .bubble {
+    @apply absolute flex items-center justify-center rounded-full border-4 border-white/50 shadow-2xl p-4;
+    top: -15%;
+    will-change: top;
+  }
+
+  @keyframes fallDown {
+    0% { top: -15%; }
+    100% { top: 110%; }
+  }
+
   .card-3d-wrapper {
     perspective: 1200px;
   }
