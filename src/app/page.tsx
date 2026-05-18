@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -54,9 +53,10 @@ export default function Home() {
     />
   );
 
+  const hasEnoughMistakes = mistakes.length >= 10;
+
   return (
     <div className="min-h-screen bg-background font-headline overflow-hidden relative">
-      {/* Decorative patterns */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
 
@@ -84,7 +84,6 @@ export default function Home() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {/* Study Room */}
           <Card 
             onClick={() => setCurrentZone("study")}
             className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
@@ -97,7 +96,6 @@ export default function Home() {
             <Button className="w-full chunky-button chunky-secondary text-lg">ENTER ROOM</Button>
           </Card>
 
-          {/* Training Ground */}
           <Card 
              onClick={() => setCurrentZone("training")}
              className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
@@ -110,7 +108,6 @@ export default function Home() {
             <Button className="w-full chunky-button chunky-primary text-lg">START DRILLS</Button>
           </Card>
 
-          {/* Arcade Mode */}
           <Card 
             onClick={() => setCurrentZone("arcade")}
             className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
@@ -126,28 +123,29 @@ export default function Home() {
 
         <div className="mt-16 flex flex-col items-center">
           <button 
-            disabled={mistakes.length < 10}
+            disabled={!hasEnoughMistakes}
             onClick={() => setCurrentZone("mistakes")}
             className={cn(
-              "w-full max-w-2xl chunky-button border-b-8 flex items-center justify-center gap-4 py-8 text-2xl relative transition-opacity",
-              mistakes.length >= 10 ? "chunky-primary" : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              "w-full max-w-2xl chunky-button border-b-8 flex items-center justify-center gap-4 py-8 text-2xl relative transition-all",
+              hasEnoughMistakes ? "chunky-primary" : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed opacity-60"
             )}
           >
-            <BrainCircuit className={cn("w-10 h-10", mistakes.length >= 10 ? "text-white" : "text-slate-300")} />
-            {mistakes.length >= 10 ? "PRACTICE MISTAKES" : "LOCKED: PRACTICE MISTAKES"}
-            {mistakes.length < 10 && (
-              <span className="absolute -top-4 -right-4 bg-slate-800 text-white text-xs px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1 font-bold">
-                <Lock className="w-3 h-3" /> {mistakes.length} / 10
-              </span>
-            )}
-            {mistakes.length >= 10 && (
+            <BrainCircuit className={cn("w-10 h-10", hasEnoughMistakes ? "text-white" : "text-slate-400")} />
+            {hasEnoughMistakes ? "PRACTICE MISTAKES" : "LOCKED: PRACTICE MISTAKES"}
+            {hasEnoughMistakes && (
               <span className="absolute -top-4 -right-4 bg-rose-500 text-white text-xs px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1 font-bold animate-bounce">
                 READY!
               </span>
             )}
+            {!hasEnoughMistakes && (
+              <span className="absolute -top-4 -right-4 bg-slate-800 text-white text-xs px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1 font-bold">
+                <Lock className="w-3 h-3" /> {mistakes.length} / 10
+              </span>
+            )}
           </button>
-          <p className="mt-6 text-slate-400 flex items-center gap-2">
-            <Info className="w-4 h-4" /> Collect at least 10 words in your Mistake Bank to unlock AI Practice
+          <p className="mt-6 text-slate-500 font-medium flex items-center gap-2">
+            <Info className="w-4 h-4" /> 
+            {hasEnoughMistakes ? "Practice your weakest words!" : "Collect at least 10 mistakes to unlock"}
           </p>
         </div>
       </main>

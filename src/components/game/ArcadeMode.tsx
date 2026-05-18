@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -38,7 +37,6 @@ export function ArcadeMode({
 
   const requestRef = useRef<number>(null);
   const spawnTimerRef = useRef<NodeJS.Timeout>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const colors = ["bg-sky-500", "bg-indigo-500", "bg-purple-500", "bg-rose-500"];
   const allWords = vocabData.weeks.flatMap(w => w.words);
@@ -47,9 +45,8 @@ export function ArcadeMode({
     if (gameState !== "playing") return;
 
     const word = allWords[Math.floor(Math.random() * allWords.length)];
-    const x = 10 + Math.random() * 80; // Keep within 10-90% horizontal range
-    // Speed increases with level. Base speed is small because it updates every frame (~60fps)
-    const speed = 0.05 + (level * 0.02);
+    const x = 5 + Math.random() * 90; // Ensure they spread horizontally across the screen
+    const speed = 0.08 + (level * 0.02);
     const color = colors[Math.floor(Math.random() * colors.length)];
 
     const newBubble: ActiveBubble = {
@@ -58,17 +55,16 @@ export function ArcadeMode({
       english: word.english,
       hebrew: word.hebrew,
       x,
-      y: -10, // Start just above the top
+      y: -10, // Start above the viewport
       speed,
       color
     };
 
     setBubbles(prev => [...prev, newBubble]);
 
-    // Spawning frequency also increases with level
-    const nextSpawnDelay = Math.max(800, 3000 - (level * 200));
+    const nextSpawnDelay = Math.max(1000, 3000 - (level * 250));
     spawnTimerRef.current = setTimeout(spawnBubble, nextSpawnDelay);
-  }, [gameState, level, allWords]);
+  }, [gameState, level, allWords, colors]);
 
   const updateGame = useCallback(() => {
     if (gameState !== "playing") return;
@@ -81,7 +77,6 @@ export function ArcadeMode({
       for (const b of prev) {
         const nextY = b.y + b.speed;
         
-        // Check if bubble hit the "floor" (bottom boundary)
         if (nextY >= 100) { 
           heartsToDeduct++;
           newlyMissed.push({ english: b.english, hebrew: b.hebrew, id: b.wordId });
@@ -92,10 +87,7 @@ export function ArcadeMode({
       }
 
       if (heartsToDeduct > 0) {
-        setHearts(h => {
-          const newHearts = Math.max(0, h - heartsToDeduct);
-          return newHearts;
-        });
+        setHearts(h => Math.max(0, h - heartsToDeduct));
         setMissedWords(m => [...m, ...newlyMissed]);
       }
 
@@ -123,7 +115,6 @@ export function ArcadeMode({
   }, [hearts, gameState]);
 
   useEffect(() => {
-    // Level up every 10 pops
     if (score > 0 && score % 10 === 0) {
       setLevel(l => Math.min(10, l + 1));
     }
@@ -134,7 +125,6 @@ export function ArcadeMode({
     const cleanInput = userInput.trim().toLowerCase();
     if (!cleanInput) return;
 
-    // Check if typed Hebrew matches any active bubble's translation
     const targetIndex = bubbles.findIndex(b => b.hebrew === cleanInput || b.hebrew === userInput.trim());
     
     if (targetIndex !== -1) {
@@ -206,7 +196,6 @@ export function ArcadeMode({
 
   return (
     <div className="fixed inset-0 bg-sky-400 overflow-hidden font-headline select-none">
-      {/* HUD */}
       <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-start z-30">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={onBack} className="bg-white/20 hover:bg-white/40 rounded-2xl text-white">
@@ -232,8 +221,7 @@ export function ArcadeMode({
         </div>
       </div>
 
-      {/* Game Stage */}
-      <div ref={containerRef} className="absolute inset-0 z-10">
+      <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
         {bubbles.map(b => (
           <div 
             key={b.id}
@@ -244,9 +232,8 @@ export function ArcadeMode({
             style={{ 
               left: `${b.x}%`, 
               top: `${b.y}%`,
-              transform: `translate(-50%, -50%)`,
-              // Linear physics - no CSS transitions to avoid "bouncing" or lag
-              transition: 'none' 
+              transform: `translateX(-50%)`,
+              transition: 'none'
             }}
           >
             <span className="text-white text-xl font-bold text-center leading-tight drop-shadow-md">{b.english}</span>
@@ -254,7 +241,6 @@ export function ArcadeMode({
         ))}
       </div>
 
-      {/* Input Section */}
       <div className="absolute bottom-0 inset-x-0 p-8 flex justify-center bg-gradient-to-t from-sky-600/50 to-transparent z-20">
         <form onSubmit={handleSubmit} className="w-full max-w-2xl relative">
           <Input 
