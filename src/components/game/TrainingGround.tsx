@@ -85,7 +85,7 @@ export function TrainingGround({
     } else {
       if (difficulty === "easy") {
         generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
-          const distractors = poolWords.filter(w => w.id !== word.id).slice(0, 3);
+          const distractors = poolWords.filter(w => w.id !== word.id).sort(() => Math.random() - 0.5).slice(0, 3);
           const options = [...distractors, word].sort(() => Math.random() - 0.5);
           return { type: "choice", word, options, answer: word.hebrew, text: word.english };
         });
@@ -258,7 +258,6 @@ export function TrainingGround({
                   {q.options.map((opt: any, i: number) => (
                     <button
                       key={i}
-                      // FIX: Use words array for display and correctness check
                       onClick={() => processAnswer(opt.is_correct, q)}
                       className="chunky-button bg-white text-slate-700 border-slate-200 text-xl py-6"
                     >
