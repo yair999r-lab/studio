@@ -15,10 +15,11 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
 
   const allWords = vocabData.weeks.flatMap(w => w.words);
-  const filteredWords = allWords.filter(w => 
-    (selectedWeek === null || w.week === selectedWeek) &&
-    (w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search))
-  );
+  const filteredWords = allWords.filter(w => {
+    const matchesWeek = selectedWeek === null || vocabData.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
+    const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
+    return matchesWeek && matchesSearch;
+  });
 
   const toggleFlip = (id: string) => {
     setFlippedCards(prev => {
@@ -62,12 +63,12 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
             </Button>
             {vocabData.weeks.map(w => (
               <Button 
-                key={w.id}
-                variant={selectedWeek === w.id ? "default" : "outline"}
-                onClick={() => setSelectedWeek(w.id)}
+                key={w.week_id}
+                variant={selectedWeek === w.week_id ? "default" : "outline"}
+                onClick={() => setSelectedWeek(w.week_id)}
                 className="rounded-xl whitespace-nowrap"
               >
-                Week {w.id}
+                Week {w.week_id}
               </Button>
             ))}
           </div>
@@ -85,7 +86,6 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
               "card-3d-inner relative w-full h-full",
               flippedCards.has(word.id) && "flipped"
             )}>
-              {/* Front */}
               <Card className="card-3d-front flex flex-col items-center justify-center p-6 rounded-[32px] border-2 border-slate-100 shadow-lg bg-white">
                 <span className="text-sm font-bold text-primary uppercase tracking-widest mb-4 bg-primary/10 px-3 py-1 rounded-full">
                   {word.category}
@@ -94,24 +94,15 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
                 <p className="mt-8 text-slate-400 text-sm italic">Click to flip</p>
               </Card>
 
-              {/* Back */}
               <Card className="card-3d-back flex flex-col items-center justify-center p-6 rounded-[32px] border-2 border-primary/20 shadow-xl bg-sky-50">
                 <h3 className="text-4xl font-headline font-bold text-primary mb-2" dir="rtl">{word.hebrew}</h3>
                 <p className="text-slate-600 text-center font-medium mt-4">
-                  Common usage: Week {word.week}
+                  Vocabulary Mastery
                 </p>
-                <div className="mt-6 w-full border-t border-sky-100 pt-4 text-center">
-                  <p className="text-xs text-sky-400 font-bold uppercase tracking-wider">Example context available in Training Ground</p>
-                </div>
               </Card>
             </div>
           </div>
         ))}
-        {filteredWords.length === 0 && (
-          <div className="col-span-full py-20 text-center">
-            <p className="text-2xl text-slate-400 font-headline">No words found match your search.</p>
-          </div>
-        )}
       </div>
     </div>
   );

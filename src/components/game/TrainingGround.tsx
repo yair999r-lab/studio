@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -44,10 +44,11 @@ export function TrainingGround({
   const allSentences = vocabData.weeks.flatMap(w => w.sentences);
 
   const startSession = () => {
-    const pool = selectedWeek === null ? allWords : allWords.filter(w => w.week === selectedWeek);
+    const pool = selectedWeek === null ? allWords : allWords.filter(w => w.week_id === selectedWeek);
     const poolSentences = selectedWeek === null ? allSentences : allSentences.filter(s => {
-        // Simple logic for week filtering sentences - would need more robust mapping in real data
-        return true; 
+        // Find if this sentence belongs to the selected week
+        const week = vocabData.weeks.find(w => w.week_id === selectedWeek);
+        return week?.sentences.some(ws => ws.id === s.id);
     });
 
     let generatedQuestions = [];
@@ -65,7 +66,7 @@ export function TrainingGround({
         type: "sentence_choice",
         sentence: s,
         options: s.answers.sort(() => Math.random() - 0.5),
-        answer: s.answers.find(a => a.is_correct)?.words.join(", ")
+        answer: s.answers.find(a => a.is_correct)?.word
       }));
     } else {
       generatedQuestions = pool.sort(() => Math.random() - 0.5).slice(0, questionCount).map(word => ({
@@ -118,24 +119,6 @@ export function TrainingGround({
     }
   };
 
-  // Keyboard support for multiple choice
-  useEffect(() => {
-    if (phase !== "active" || showFeedback) return;
-    const handleKeys = (e: KeyboardEvent) => {
-      if (difficulty !== "easy" && difficulty !== "medium") return;
-      if (["1", "2", "3", "4"].includes(e.key)) {
-        const index = parseInt(e.key) - 1;
-        const q = questions[currentIndex];
-        if (q.options[index]) {
-          const val = difficulty === "easy" ? q.options[index].hebrew : q.options[index].words.join(", ");
-          handleChoice(val);
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKeys);
-    return () => window.removeEventListener("keydown", handleKeys);
-  }, [phase, showFeedback, currentIndex, questions, difficulty]);
-
   if (phase === "setup") {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -176,25 +159,11 @@ export function TrainingGround({
                 >All Weeks</Button>
                 {vocabData.weeks.map(w => (
                   <Button 
-                    key={w.id}
-                    variant={selectedWeek === w.id ? "default" : "outline"}
-                    onClick={() => setSelectedWeek(w.id)}
+                    key={w.week_id}
+                    variant={selectedWeek === w.week_id ? "default" : "outline"}
+                    onClick={() => setSelectedWeek(w.week_id)}
                     className="rounded-xl"
-                  >Week {w.id}</Button>
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Questions: {questionCount}</p>
-              <div className="flex gap-4">
-                {[10, 20, 30, 40].map(c => (
-                  <Button
-                    key={c}
-                    variant={questionCount === c ? "default" : "outline"}
-                    onClick={() => setQuestionCount(c)}
-                    className="flex-1 rounded-xl h-12"
-                  >{c}</Button>
+                  >Week {w.week_id}</Button>
                 ))}
               </div>
             </section>
@@ -242,7 +211,6 @@ export function TrainingGround({
                       className="chunky-button bg-white text-slate-700 border-slate-200 border-b-8 text-2xl py-8 text-center"
                       dir="rtl"
                     >
-                      <span className="float-left text-sm text-slate-300 font-bold bg-slate-100 w-6 h-6 rounded flex items-center justify-center mr-2">{i+1}</span>
                       {opt.hebrew}
                     </button>
                   ))}
@@ -262,11 +230,10 @@ export function TrainingGround({
                   {q.options.map((opt: any, i: number) => (
                     <button
                       key={i}
-                      onClick={() => handleChoice(opt.words.join(", "))}
+                      onClick={() => handleChoice(opt.word)}
                       className="chunky-button bg-white text-slate-700 border-slate-200 border-b-8 text-xl py-6"
                     >
-                      <span className="float-left text-sm text-slate-300 font-bold bg-slate-100 w-6 h-6 rounded flex items-center justify-center mr-2">{i+1}</span>
-                      {opt.words.join(" / ")}
+                      {opt.word}
                     </button>
                   ))}
                 </div>
