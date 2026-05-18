@@ -21,10 +21,10 @@
           "text_with_blanks": "I open the ___ to get fresh air.",
           "translation_hebrew": "אני פותח את החלון כדי לקבל אוויר צח.",
           "answers": [
-            { "word": "window", "is_correct": true },
-            { "word": "table", "is_correct": false },
-            { "word": "door", "is_correct": false },
-            { "word": "chair", "is_correct": false }
+            { "words": ["window"], "is_correct": true },
+            { "words": ["table"], "is_correct": false },
+            { "words": ["door"], "is_correct": false },
+            { "words": ["chair"], "is_correct": false }
           ],
           "glossary": { "open": "פותח", "fresh": "רענן/צח" }
         }

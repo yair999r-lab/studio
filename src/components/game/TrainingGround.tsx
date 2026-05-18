@@ -17,7 +17,7 @@ type TrainingGroundProps = {
   onBack: () => void;
   onCorrect: (wordId: string) => void;
   onWrong: (word: any) => void;
-  mistakePool?: Mistake[]; // If provided, we are in Mistakes Review mode
+  mistakePool?: Mistake[]; 
 };
 
 export function TrainingGround({ 
@@ -55,13 +55,8 @@ export function TrainingGround({
     let poolSentences = [];
 
     if (customPool) {
-      // Review Mode: Use mistakes bank words and matching sentences
       poolWords = customPool;
-      poolSentences = vocabData.weeks.flatMap(w => w.sentences).filter(s => 
-        customPool.some(mw => s.answers.some(ans => ans.word === mw.english))
-      );
     } else {
-      // Normal Mode: Filter by week
       const activeWeeks = selectedWeek === null 
         ? vocabData.weeks 
         : vocabData.weeks.filter(w => w.week_id === selectedWeek);
@@ -71,40 +66,23 @@ export function TrainingGround({
 
     let generatedQuestions = [];
     
-    // Logic for progressive difficulty (3-tier) in Review mode or based on difficulty selection
     if (customPool) {
-      const count = poolWords.length;
-      const tier1Count = Math.floor(count * 0.3) || 1;
-      const tier2Count = Math.floor(count * 0.3);
-      
-      const shuffledWords = [...poolWords].sort(() => Math.random() - 0.5);
-      
-      generatedQuestions = shuffledWords.map((word, idx) => {
-        if (idx < tier1Count) {
-          // Tier 1: Multiple Choice
-          const distractors = vocabData.weeks.flatMap(w => w.words)
-            .filter(w => w.id !== word.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 3);
-          const options = [...distractors, word].sort(() => Math.random() - 0.5);
-          return { type: "choice", word, options, answer: word.hebrew, text: word.english };
-        } else if (idx < tier1Count + tier2Count && poolSentences.length > 0) {
-          // Tier 2: Fill in the Blank (Sentence)
-          const matchingSentence = poolSentences.find(s => s.answers.some(a => a.word === word.english)) || poolSentences[0];
-          return {
-            type: "sentence_choice",
-            sentence: matchingSentence,
-            options: [...matchingSentence.answers].sort(() => Math.random() - 0.5),
-            answer: matchingSentence.answers.find(a => a.is_correct)?.word,
-            word 
-          };
-        } else {
-          // Tier 3: Typing
-          return { type: "typing", word, text: word.hebrew, answer: word.english };
-        }
+      // FIX: Mistakes Review MUST use Level 1 (Multiple Choice)
+      generatedQuestions = poolWords.map(word => {
+        const distractors = vocabData.weeks.flatMap(w => w.words)
+          .filter(w => w.id !== word.id)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        const options = [...distractors, word].sort(() => Math.random() - 0.5);
+        return { 
+          type: "choice", 
+          word, 
+          options, 
+          answer: word.hebrew, 
+          text: word.english 
+        };
       });
     } else {
-      // Normal training sessions logic
       if (difficulty === "easy") {
         generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
           const distractors = poolWords.filter(w => w.id !== word.id).slice(0, 3);
@@ -116,7 +94,7 @@ export function TrainingGround({
           type: "sentence_choice",
           sentence: s,
           options: [...s.answers].sort(() => Math.random() - 0.5),
-          answer: s.answers.find(a => a.is_correct)?.word
+          answer: s.answers.find(a => a.is_correct)?.words?.join(' / ') || ""
         }));
       } else {
         generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => ({
@@ -239,7 +217,7 @@ export function TrainingGround({
                   {isReviewMode ? "Mistakes Review" : "Training"}: {currentIndex + 1} / {questions.length}
                 </span>
                 <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                  {isReviewMode ? "Progressive" : difficulty} MODE
+                  {isReviewMode ? "Review" : difficulty} MODE
                 </span>
               </div>
               <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white" />
@@ -280,10 +258,11 @@ export function TrainingGround({
                   {q.options.map((opt: any, i: number) => (
                     <button
                       key={i}
-                      onClick={() => processAnswer(opt.word === q.answer, q)}
+                      // FIX: Use words array for display and correctness check
+                      onClick={() => processAnswer(opt.is_correct, q)}
                       className="chunky-button bg-white text-slate-700 border-slate-200 text-xl py-6"
                     >
-                      {opt.word}
+                      {opt.words ? opt.words.join(' / ') : opt.word}
                     </button>
                   ))}
                 </div>
@@ -296,22 +275,25 @@ export function TrainingGround({
                   <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Type the translation</span>
                   <h2 className="text-6xl font-headline font-bold text-slate-800" dir="rtl">{q.text}</h2>
                 </div>
-                <div className="w-full max-w-md mx-auto space-y-6">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (userAnswer.trim()) {
+                      const { isCorrect, isAlmost } = isSpellingCorrect(q.answer, userAnswer);
+                      processAnswer(isCorrect, q, isAlmost);
+                    }
+                  }}
+                  className="w-full max-w-md mx-auto space-y-6"
+                >
                   <Input 
                     autoFocus
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && userAnswer.trim()) {
-                        const { isCorrect, isAlmost } = isSpellingCorrect(q.answer, userAnswer);
-                        processAnswer(isCorrect, q, isAlmost);
-                      }
-                    }}
                     placeholder="Type in English..."
                     className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 focus:border-primary transition-all font-bold"
                   />
                   <p className="text-slate-400 font-bold text-sm">PRESS ENTER TO SUBMIT</p>
-                </div>
+                </form>
               </div>
             )}
           </main>
@@ -330,7 +312,7 @@ export function TrainingGround({
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
       <div className="w-full max-w-xl bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-primary text-center">
-        {isReviewMode ? <BrainCircuit className="w-24 h-24 text-indigo-500 mx-auto mb-6" /> : <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />}
+        <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
         <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Mistakes Cleared!" : "Training Complete!"}</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">You&apos;re building an incredible foundation.</p>
         
