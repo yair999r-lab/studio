@@ -19,11 +19,9 @@ type ActiveBubble = {
 
 export function ArcadeMode({ 
   onBack, 
-  onMistake, 
   onScore 
 }: { 
   onBack: () => void; 
-  onMistake: (word: any) => void;
   onScore: (amount: number) => void;
 }) {
   const [gameState, setGameState] = useState<"ready" | "playing" | "gameover">("ready");
@@ -44,10 +42,11 @@ export function ArcadeMode({
     if (gameState !== "playing" || spawnedCount >= 10) return;
 
     const word = allWords[Math.floor(Math.random() * allWords.length)];
-    const x = 10 + Math.random() * 80; // Margin to avoid edges
+    const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    // Fall speed gets faster each level: 6s base, -0.4s per level, min 2s
-    const duration = Math.max(2, 6 - (level - 1) * 0.4);
+    
+    // Level 1: 13 seconds. Subsequent levels decrease by 1.5s, min 5s.
+    const duration = Math.max(5, 13 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
       id: Math.random().toString(36).substring(2, 9),
@@ -63,7 +62,6 @@ export function ArcadeMode({
     setSpawnedCount(s => s + 1);
   }, [gameState, spawnedCount, level, allWords]);
 
-  // Spawner Loop
   useEffect(() => {
     if (gameState === "playing" && spawnedCount < 10) {
       const timer = setTimeout(spawnOneBubble, 2000);
@@ -71,7 +69,6 @@ export function ArcadeMode({
     }
   }, [gameState, spawnedCount, spawnOneBubble]);
 
-  // Level Progression
   useEffect(() => {
     if (clearedCount >= 10 && gameState === "playing") {
       setLevel(l => l + 1);
@@ -81,7 +78,6 @@ export function ArcadeMode({
     }
   }, [clearedCount, gameState]);
 
-  // Game Over Check
   useEffect(() => {
     if (hearts <= 0 && gameState === "playing") {
       setGameState("gameover");
@@ -94,7 +90,7 @@ export function ArcadeMode({
       if (missed) {
         setHearts(h => Math.max(0, h - 1));
         setMissedWords(m => [...m, missed]);
-        onMistake({ id: missed.wordId, english: missed.english, hebrew: missed.hebrew, category: 'arcade' });
+        // CRITICAL: We no longer add arcade misses to the global Mistakes Bank.
         setClearedCount(c => c + 1);
       }
       return prev.filter(b => b.id !== id);
@@ -106,7 +102,6 @@ export function ArcadeMode({
     const cleanInput = userInput.trim().toLowerCase();
     if (!cleanInput) return;
 
-    // Check if any bubble matches the input
     const target = bubbles.find(b => b.hebrew === cleanInput || b.hebrew === userInput.trim());
     
     if (target) {
@@ -123,12 +118,12 @@ export function ArcadeMode({
   if (gameState === "ready") {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white rounded-[48px] p-12 shadow-2xl text-center border-b-8 border-slate-100">
-          <div className="w-32 h-32 bg-sky-500 rounded-full mx-auto mb-8 flex items-center justify-center border-4 border-white shadow-xl">
-            <Zap className="w-16 h-16 text-white" />
+        <div className="max-w-xl w-full bg-white rounded-[40px] p-12 shadow-2xl text-center border-b-8 border-slate-100 bouncy-entrance">
+          <div className="w-24 h-24 bg-sky-500 rounded-[32px] mx-auto mb-8 flex items-center justify-center border-4 border-white shadow-xl">
+            <Zap className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Arcade Mode</h1>
-          <p className="text-slate-500 mb-10 text-lg">Type the Hebrew translation to pop falling bubbles. Each level has 10 words. Don&apos;t let them hit the floor!</p>
+          <p className="text-slate-500 mb-10 text-lg leading-relaxed">Type the Hebrew translation to pop falling bubbles. Each level has 10 words. Don&apos;t let them hit the floor!</p>
           <Button onClick={() => setGameState("playing")} className="w-full chunky-button chunky-primary text-xl py-8">
             START GAME
           </Button>
@@ -141,7 +136,7 @@ export function ArcadeMode({
   if (gameState === "gameover") {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full bg-white rounded-[48px] p-12 shadow-2xl border-t-8 border-rose-500 text-center">
+        <div className="max-w-2xl w-full bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-rose-500 text-center">
           <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-6" />
           <h1 className="text-4xl font-headline font-bold text-slate-800 mb-8">Game Over!</h1>
           
@@ -157,7 +152,7 @@ export function ArcadeMode({
           </div>
 
           <div className="text-left mb-10">
-            <h3 className="font-bold text-slate-700 mb-4">Practice these missed words:</h3>
+            <h3 className="font-bold text-slate-700 mb-4">Need practice:</h3>
             <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-4 bg-slate-50 rounded-2xl border">
               {missedWords.length > 0 ? Array.from(new Set(missedWords.map(w => w.english))).map(en => (
                 <span key={en} className="bg-white border px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
@@ -180,10 +175,9 @@ export function ArcadeMode({
 
   return (
     <div className="fixed inset-0 bg-sky-400 overflow-hidden font-headline select-none">
-      {/* HUD */}
       <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-start z-30 pointer-events-none">
         <div className="flex items-center gap-4 pointer-events-auto">
-          <Button variant="ghost" onClick={onBack} className="bg-white/20 hover:bg-white/40 rounded-2xl text-white">
+          <Button variant="ghost" onClick={onBack} className="bg-white/20 hover:bg-white/40 rounded-2xl text-white font-bold">
             <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
           </Button>
           <div className="bg-white/90 backdrop-blur px-6 py-2 rounded-2xl shadow-lg border-b-4 border-slate-200">
@@ -212,7 +206,6 @@ export function ArcadeMode({
         </div>
       </div>
 
-      {/* Physics Area */}
       <div className="bubble-container absolute inset-0 z-10 pointer-events-none">
         {bubbles.map(b => (
           <div 
@@ -221,7 +214,7 @@ export function ArcadeMode({
             className={cn("bubble w-32 h-32", b.color)}
             style={{ 
               left: `${b.x}%`, 
-              animation: `fallDown ${b.duration}s linear forwards`,
+              animationDuration: `${b.duration}s`,
               transform: `translateX(-50%)`
             }}
           >
@@ -230,7 +223,6 @@ export function ArcadeMode({
         ))}
       </div>
 
-      {/* Input Form */}
       <div className="absolute bottom-0 inset-x-0 p-8 flex justify-center bg-gradient-to-t from-sky-600/50 to-transparent z-20">
         <form onSubmit={handleSubmit} className="w-full max-w-2xl relative">
           <Input 
@@ -239,7 +231,7 @@ export function ArcadeMode({
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="Type Hebrew..."
-            className="h-20 text-3xl rounded-[32px] border-4 border-white bg-white/95 shadow-2xl pr-36 text-center text-slate-800 focus-visible:ring-0"
+            className="h-20 text-3xl rounded-[32px] border-4 border-white bg-white/95 shadow-2xl pr-36 text-center text-slate-800 focus-visible:ring-0 font-bold"
             dir="rtl"
             onBlur={() => inputRef.current?.focus()}
           />

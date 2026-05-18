@@ -5,7 +5,6 @@ import { useGameState } from "@/hooks/use-game-state";
 import { StudyRoom } from "@/components/game/StudyRoom";
 import { TrainingGround } from "@/components/game/TrainingGround";
 import { ArcadeMode } from "@/components/game/ArcadeMode";
-import { MistakesReview } from "@/components/game/MistakesReview";
 import { Onboarding } from "@/components/game/Onboarding";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,13 +39,12 @@ export default function Home() {
   if (currentZone === "arcade") return (
     <ArcadeMode 
       onBack={() => setCurrentZone("lobby")} 
-      onMistake={(word) => addMistake(word)}
       onScore={(amt) => addScore(amt * 5)}
     />
   );
   if (currentZone === "mistakes") return (
-    <MistakesReview 
-      mistakePool={mistakes} 
+    <TrainingGround 
+      mistakePool={mistakes}
       onBack={() => setCurrentZone("lobby")}
       onCorrect={(id) => resolveMistake(id, true)}
       onWrong={(id) => resolveMistake(id, false)}
@@ -86,7 +84,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <Card 
             onClick={() => setCurrentZone("study")}
-            className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
+            className="group cursor-pointer rounded-[40px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
           >
             <div className="w-16 h-16 bg-sky-100 rounded-[24px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <BookOpen className="w-8 h-8 text-sky-600" />
@@ -98,7 +96,7 @@ export default function Home() {
 
           <Card 
              onClick={() => setCurrentZone("training")}
-             className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
+             className="group cursor-pointer rounded-[40px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
           >
             <div className="w-16 h-16 bg-primary/10 rounded-[24px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Sword className="w-8 h-8 text-primary" />
@@ -110,7 +108,7 @@ export default function Home() {
 
           <Card 
             onClick={() => setCurrentZone("arcade")}
-            className="group cursor-pointer rounded-[48px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
+            className="group cursor-pointer rounded-[40px] p-8 border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
           >
             <div className="w-16 h-16 bg-emerald-100 rounded-[24px] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Zap className="w-8 h-8 text-emerald-600" />

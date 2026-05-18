@@ -1,28 +1,33 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Trophy, BrainCircuit } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { isSpellingCorrect } from "@/lib/levenshtein";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn } from "@/lib/utils";
+import type { Mistake } from "@/hooks/use-game-state";
 
 type Difficulty = "easy" | "medium" | "hard";
+
+type TrainingGroundProps = {
+  onBack: () => void;
+  onCorrect: (wordId: string) => void;
+  onWrong: (word: any) => void;
+  mistakePool?: Mistake[]; // If provided, we are in Mistakes Review mode
+};
 
 export function TrainingGround({ 
   onBack, 
   onCorrect, 
-  onWrong 
-}: { 
-  onBack: () => void; 
-  onCorrect: (wordId: string) => void; 
-  onWrong: (word: any) => void;
-}) {
-  const [phase, setPhase] = useState<"setup" | "active" | "summary">("setup");
+  onWrong,
+  mistakePool
+}: TrainingGroundProps) {
+  const isReviewMode = !!mistakePool;
+  const [phase, setPhase] = useState<"setup" | "active" | "summary">(isReviewMode ? "active" : "setup");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   
@@ -39,38 +44,89 @@ export function TrainingGround({
   } | null>(null);
   const [sessionResults, setSessionResults] = useState({ correct: 0, wrong: 0 });
 
-  const startSession = () => {
-    const activeWeeks = selectedWeek === null 
-      ? vocabData.weeks 
-      : vocabData.weeks.filter(w => w.week_id === selectedWeek);
+  // Handle initialization for Review Mode
+  useEffect(() => {
+    if (isReviewMode && mistakePool && questions.length === 0) {
+      startSession(mistakePool);
+    }
+  }, [isReviewMode, mistakePool, questions.length]);
 
-    const poolWords = activeWeeks.flatMap(w => w.words);
-    const poolSentences = activeWeeks.flatMap(w => w.sentences);
+  const startSession = (customPool?: Mistake[]) => {
+    let poolWords = [];
+    let poolSentences = [];
+
+    if (customPool) {
+      poolWords = customPool;
+      // For mistakes review, we look for any existing sentences in the master data that contain these words
+      poolSentences = vocabData.weeks.flatMap(w => w.sentences).filter(s => 
+        customPool.some(mw => s.answers.some(ans => ans.word === mw.english))
+      );
+    } else {
+      const activeWeeks = selectedWeek === null 
+        ? vocabData.weeks 
+        : vocabData.weeks.filter(w => w.week_id === selectedWeek);
+      poolWords = activeWeeks.flatMap(w => w.words);
+      poolSentences = activeWeeks.flatMap(w => w.sentences);
+    }
 
     let generatedQuestions = [];
-    if (difficulty === "easy") {
-      generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
-        const distractors = poolWords
-          .filter(w => w.id !== word.id && w.category === word.category)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3);
-        const options = [...distractors, word].sort(() => Math.random() - 0.5);
-        return { type: "choice", word, options, answer: word.hebrew, text: word.english };
+    
+    if (customPool) {
+      // Mistakes Review logic: 3-tier progression
+      // Tier 1: Choice (first 30%), Tier 2: Sentence (next 30%), Tier 3: Typing (rest)
+      const count = poolWords.length;
+      const tier1Count = Math.floor(count * 0.3) || 1;
+      const tier2Count = Math.floor(count * 0.3);
+      
+      const shuffledWords = [...poolWords].sort(() => Math.random() - 0.5);
+      
+      generatedQuestions = shuffledWords.map((word, idx) => {
+        if (idx < tier1Count) {
+          // Tier 1: Multiple Choice
+          const distractors = vocabData.weeks.flatMap(w => w.words)
+            .filter(w => w.id !== word.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3);
+          const options = [...distractors, word].sort(() => Math.random() - 0.5);
+          return { type: "choice", word, options, answer: word.hebrew, text: word.english };
+        } else if (idx < tier1Count + tier2Count && poolSentences.length > 0) {
+          // Tier 2: Sentence Choice
+          const matchingSentence = poolSentences.find(s => s.answers.some(a => a.word === word.english)) || poolSentences[0];
+          return {
+            type: "sentence_choice",
+            sentence: matchingSentence,
+            options: [...matchingSentence.answers].sort(() => Math.random() - 0.5),
+            answer: matchingSentence.answers.find(a => a.is_correct)?.word,
+            word // Keep reference for reporting
+          };
+        } else {
+          // Tier 3: Typing
+          return { type: "typing", word, text: word.hebrew, answer: word.english };
+        }
       });
-    } else if (difficulty === "medium") {
-      generatedQuestions = poolSentences.sort(() => Math.random() - 0.5).slice(0, 10).map(s => ({
-        type: "sentence_choice",
-        sentence: s,
-        options: [...s.answers].sort(() => Math.random() - 0.5),
-        answer: s.answers.find(a => a.is_correct)?.word
-      }));
     } else {
-      generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => ({
-        type: "typing",
-        word,
-        text: word.hebrew,
-        answer: word.english
-      }));
+      // Standard Training Ground logic (One difficulty per session)
+      if (difficulty === "easy") {
+        generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
+          const distractors = poolWords.filter(w => w.id !== word.id).slice(0, 3);
+          const options = [...distractors, word].sort(() => Math.random() - 0.5);
+          return { type: "choice", word, options, answer: word.hebrew, text: word.english };
+        });
+      } else if (difficulty === "medium") {
+        generatedQuestions = poolSentences.sort(() => Math.random() - 0.5).slice(0, 10).map(s => ({
+          type: "sentence_choice",
+          sentence: s,
+          options: [...s.answers].sort(() => Math.random() - 0.5),
+          answer: s.answers.find(a => a.is_correct)?.word
+        }));
+      } else {
+        generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => ({
+          type: "typing",
+          word,
+          text: word.hebrew,
+          answer: word.english
+        }));
+      }
     }
 
     setQuestions(generatedQuestions);
@@ -159,7 +215,7 @@ export function TrainingGround({
           </div>
 
           <Button 
-            onClick={startSession}
+            onClick={() => startSession()}
             className="w-full chunky-button chunky-primary text-xl py-8 mt-12"
           >
             START SESSION
@@ -171,6 +227,8 @@ export function TrainingGround({
 
   if (phase === "active") {
     const q = questions[currentIndex];
+    if (!q) return null;
+
     return (
       <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
         <div className="w-full max-w-4xl">
@@ -178,14 +236,18 @@ export function TrainingGround({
             <Button variant="ghost" onClick={onBack} className="rounded-2xl bg-white"><ArrowLeft className="w-6 h-6"/></Button>
             <div className="flex-1">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-primary font-bold">Progress: {currentIndex + 1} / {questions.length}</span>
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">{difficulty} MODE</span>
+                <span className="text-primary font-bold">
+                  {isReviewMode ? "Mistakes Review" : "Training"}: {currentIndex + 1} / {questions.length}
+                </span>
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  {isReviewMode ? "Progressive" : difficulty} MODE
+                </span>
               </div>
               <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white" />
             </div>
           </header>
 
-          <main className="bg-white rounded-[48px] p-12 shadow-2xl border-b-8 border-slate-100 min-h-[450px] flex items-center justify-center">
+          <main className="bg-white rounded-[40px] p-12 shadow-2xl border-b-8 border-slate-100 min-h-[450px] flex items-center justify-center">
             {q.type === "choice" && (
               <div className="w-full text-center space-y-12">
                 <div className="space-y-4">
@@ -247,7 +309,7 @@ export function TrainingGround({
                       }
                     }}
                     placeholder="Type in English..."
-                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 focus:border-primary transition-all"
+                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 focus:border-primary transition-all font-bold"
                   />
                   <p className="text-slate-400 font-bold text-sm">PRESS ENTER TO SUBMIT</p>
                 </div>
@@ -268,24 +330,26 @@ export function TrainingGround({
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-      <div className="w-full max-w-xl bg-white rounded-[48px] p-12 shadow-2xl border-t-8 border-primary text-center">
-        <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
-        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Training Complete!</h1>
+      <div className="w-full max-w-xl bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-primary text-center">
+        {isReviewMode ? <BrainCircuit className="w-24 h-24 text-indigo-500 mx-auto mb-6" /> : <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />}
+        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Mistakes Cleared!" : "Training Complete!"}</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">You&apos;re building an incredible foundation.</p>
         
         <div className="grid grid-cols-2 gap-6 mb-12">
           <div className="bg-emerald-50 p-8 rounded-[32px] border-2 border-emerald-100">
             <p className="text-emerald-700 font-bold text-5xl mb-2">{sessionResults.correct}</p>
-            <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest">Correct</p>
+            <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest">Mastered</p>
           </div>
           <div className="bg-rose-50 p-8 rounded-[32px] border-2 border-rose-100">
             <p className="text-rose-700 font-bold text-5xl mb-2">{sessionResults.wrong}</p>
-            <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Mistakes</p>
+            <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Still Tough</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <Button onClick={startSession} className="w-full chunky-button chunky-primary py-8 text-xl">TRAIN AGAIN</Button>
+          <Button onClick={() => startSession(mistakePool)} className="w-full chunky-button chunky-primary py-8 text-xl">
+            {isReviewMode ? "REVIEW AGAIN" : "TRAIN AGAIN"}
+          </Button>
           <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold">RETURN TO LOBBY</Button>
         </div>
       </div>
