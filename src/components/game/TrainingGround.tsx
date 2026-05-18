@@ -55,11 +55,13 @@ export function TrainingGround({
     let poolSentences = [];
 
     if (customPool) {
+      // Review Mode: Use mistakes bank words and matching sentences
       poolWords = customPool;
       poolSentences = vocabData.weeks.flatMap(w => w.sentences).filter(s => 
         customPool.some(mw => s.answers.some(ans => ans.word === mw.english))
       );
     } else {
+      // Normal Mode: Filter by week
       const activeWeeks = selectedWeek === null 
         ? vocabData.weeks 
         : vocabData.weeks.filter(w => w.week_id === selectedWeek);
@@ -69,6 +71,7 @@ export function TrainingGround({
 
     let generatedQuestions = [];
     
+    // Logic for progressive difficulty (3-tier) in Review mode or based on difficulty selection
     if (customPool) {
       const count = poolWords.length;
       const tier1Count = Math.floor(count * 0.3) || 1;
@@ -78,6 +81,7 @@ export function TrainingGround({
       
       generatedQuestions = shuffledWords.map((word, idx) => {
         if (idx < tier1Count) {
+          // Tier 1: Multiple Choice
           const distractors = vocabData.weeks.flatMap(w => w.words)
             .filter(w => w.id !== word.id)
             .sort(() => Math.random() - 0.5)
@@ -85,6 +89,7 @@ export function TrainingGround({
           const options = [...distractors, word].sort(() => Math.random() - 0.5);
           return { type: "choice", word, options, answer: word.hebrew, text: word.english };
         } else if (idx < tier1Count + tier2Count && poolSentences.length > 0) {
+          // Tier 2: Fill in the Blank (Sentence)
           const matchingSentence = poolSentences.find(s => s.answers.some(a => a.word === word.english)) || poolSentences[0];
           return {
             type: "sentence_choice",
@@ -94,10 +99,12 @@ export function TrainingGround({
             word 
           };
         } else {
+          // Tier 3: Typing
           return { type: "typing", word, text: word.hebrew, answer: word.english };
         }
       });
     } else {
+      // Normal training sessions logic
       if (difficulty === "easy") {
         generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
           const distractors = poolWords.filter(w => w.id !== word.id).slice(0, 3);

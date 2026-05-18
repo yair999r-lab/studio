@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -46,6 +45,7 @@ export function useGameState() {
     setMistakes((prev) => {
       const existing = prev.find((m) => m.id === word.id);
       if (existing) {
+        // If already in mistakes bank, reset mastery to 0
         return prev.map((m) => (m.id === word.id ? { ...m, mastery: 0 } : m));
       }
       return [...prev, { ...word, mastery: 0 }];
@@ -58,12 +58,14 @@ export function useGameState() {
       if (!existing) return prev;
 
       if (correct) {
+        // Increment mastery. If mastery reaches 2, remove from bank
         const newMastery = existing.mastery + 1;
         if (newMastery >= 2) {
           return prev.filter((m) => m.id !== wordId);
         }
         return prev.map((m) => (m.id === wordId ? { ...m, mastery: newMastery } : m));
       } else {
+        // Failed again, reset mastery
         return prev.map((m) => (m.id === wordId ? { ...m, mastery: 0 } : m));
       }
     });
