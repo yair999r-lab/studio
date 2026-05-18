@@ -44,7 +44,6 @@ export function TrainingGround({
   } | null>(null);
   const [sessionResults, setSessionResults] = useState({ correct: 0, wrong: 0 });
 
-  // Handle initialization for Review Mode
   useEffect(() => {
     if (isReviewMode && mistakePool && questions.length === 0) {
       startSession(mistakePool);
@@ -57,7 +56,6 @@ export function TrainingGround({
 
     if (customPool) {
       poolWords = customPool;
-      // For mistakes review, we look for any existing sentences in the master data that contain these words
       poolSentences = vocabData.weeks.flatMap(w => w.sentences).filter(s => 
         customPool.some(mw => s.answers.some(ans => ans.word === mw.english))
       );
@@ -72,8 +70,6 @@ export function TrainingGround({
     let generatedQuestions = [];
     
     if (customPool) {
-      // Mistakes Review logic: 3-tier progression
-      // Tier 1: Choice (first 30%), Tier 2: Sentence (next 30%), Tier 3: Typing (rest)
       const count = poolWords.length;
       const tier1Count = Math.floor(count * 0.3) || 1;
       const tier2Count = Math.floor(count * 0.3);
@@ -82,7 +78,6 @@ export function TrainingGround({
       
       generatedQuestions = shuffledWords.map((word, idx) => {
         if (idx < tier1Count) {
-          // Tier 1: Multiple Choice
           const distractors = vocabData.weeks.flatMap(w => w.words)
             .filter(w => w.id !== word.id)
             .sort(() => Math.random() - 0.5)
@@ -90,22 +85,19 @@ export function TrainingGround({
           const options = [...distractors, word].sort(() => Math.random() - 0.5);
           return { type: "choice", word, options, answer: word.hebrew, text: word.english };
         } else if (idx < tier1Count + tier2Count && poolSentences.length > 0) {
-          // Tier 2: Sentence Choice
           const matchingSentence = poolSentences.find(s => s.answers.some(a => a.word === word.english)) || poolSentences[0];
           return {
             type: "sentence_choice",
             sentence: matchingSentence,
             options: [...matchingSentence.answers].sort(() => Math.random() - 0.5),
             answer: matchingSentence.answers.find(a => a.is_correct)?.word,
-            word // Keep reference for reporting
+            word 
           };
         } else {
-          // Tier 3: Typing
           return { type: "typing", word, text: word.hebrew, answer: word.english };
         }
       });
     } else {
-      // Standard Training Ground logic (One difficulty per session)
       if (difficulty === "easy") {
         generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
           const distractors = poolWords.filter(w => w.id !== word.id).slice(0, 3);

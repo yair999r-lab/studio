@@ -46,7 +46,6 @@
     @apply bg-rose-500 text-white border-rose-700 hover:bg-rose-400;
   }
   
-  /* Arcade Mode Physics */
   .bubble-container {
     @apply relative overflow-hidden w-full h-full;
   }
@@ -55,6 +54,7 @@
     @apply absolute flex items-center justify-center rounded-full border-4 border-white/50 shadow-2xl p-4;
     top: -15%;
     will-change: top;
+    animation: fallDown linear forwards;
   }
 
   @keyframes fallDown {

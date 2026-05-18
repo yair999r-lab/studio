@@ -90,7 +90,6 @@ export function ArcadeMode({
       if (missed) {
         setHearts(h => Math.max(0, h - 1));
         setMissedWords(m => [...m, missed]);
-        // CRITICAL: We no longer add arcade misses to the global Mistakes Bank.
         setClearedCount(c => c + 1);
       }
       return prev.filter(b => b.id !== id);
