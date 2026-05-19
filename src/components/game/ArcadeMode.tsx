@@ -42,7 +42,6 @@ export function ArcadeMode({
   const colors = ["bg-sky-500", "bg-indigo-500", "bg-purple-500", "bg-rose-500"];
 
   const initGame = () => {
-    // Implement Fisher-Yates shuffle for the word pool
     const pool = vocabData.weeks
       .filter(w => selectedWeeks.includes(w.week_id))
       .flatMap(w => w.words);
@@ -66,7 +65,7 @@ export function ArcadeMode({
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // Physics Adjustment: Starting at 16s fall time (much slower)
+    // Physics Adjustment: Starting at 16s fall time (very slow)
     const duration = Math.max(6, 16 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
@@ -85,7 +84,6 @@ export function ArcadeMode({
 
   useEffect(() => {
     if (gameState === "playing" && spawnedCount < 10) {
-      // Physics Adjustment: Slower initial spawn delay (3.5s)
       const spawnDelay = Math.max(1200, 3500 - (level - 1) * 300);
       const timer = setTimeout(spawnOneBubble, spawnDelay);
       return () => clearTimeout(timer);
@@ -122,13 +120,13 @@ export function ArcadeMode({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanInput = userInput.trim().toLowerCase();
+    const cleanInput = userInput.trim();
     if (!cleanInput) return;
 
-    const targetIndex = bubbles.findIndex(b => {
-      // Split by comma for multiple correct answers
-      const variations = b.hebrew.split(',').map(v => v.trim().toLowerCase());
-      return variations.includes(cleanInput);
+    // Find the first bubble that matches the user input against any of its Hebrew variations
+    const targetIndex = bubbles.findIndex(bubble => {
+      const validAnswers = bubble.hebrew.split(',').map(word => word.trim());
+      return validAnswers.some(validWord => cleanInput === validWord);
     });
     
     if (targetIndex !== -1) {
@@ -139,6 +137,7 @@ export function ArcadeMode({
       setClearedCount(c => c + 1);
       setUserInput("");
     } else {
+      // Clear input on wrong answer to let user try again
       setUserInput("");
     }
   };
