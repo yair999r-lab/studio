@@ -23,13 +23,24 @@ export function getLevenshteinDistance(a: string, b: string): number {
 }
 
 export function isSpellingCorrect(target: string, input: string): { isCorrect: boolean; isAlmost: boolean } {
-  const distance = getLevenshteinDistance(target.trim(), input.trim());
-  if (distance === 0) return { isCorrect: true, isAlmost: false };
-  
-  // Rule: target <= 4 requires 100% accuracy. >= 5 allow 1 distance.
-  if (target.length >= 5 && distance === 1) {
-    return { isCorrect: true, isAlmost: true };
+  // Support comma-separated variations
+  const variations = target.split(',').map(v => v.trim());
+  const userInput = input.trim();
+
+  let almostMatch = false;
+
+  for (const variation of variations) {
+    const distance = getLevenshteinDistance(variation, userInput);
+    
+    if (distance === 0) {
+      return { isCorrect: true, isAlmost: false };
+    }
+    
+    // Rule: target length >= 5 allow 1 distance as "almost"
+    if (variation.length >= 5 && distance === 1) {
+      almostMatch = true;
+    }
   }
   
-  return { isCorrect: false, isAlmost: false };
+  return { isCorrect: almostMatch, isAlmost: almostMatch };
 }

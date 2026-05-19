@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -40,7 +41,6 @@ export function ArcadeMode({
   const inputRef = useRef<HTMLInputElement>(null);
   const colors = ["bg-sky-500", "bg-indigo-500", "bg-purple-500", "bg-rose-500"];
 
-  // Initialize Word Pool with selection and Fisher-Yates
   const initGame = () => {
     const pool = vocabData.weeks
       .filter(w => selectedWeeks.includes(w.week_id))
@@ -61,12 +61,9 @@ export function ArcadeMode({
   const spawnOneBubble = useCallback(() => {
     if (gameState !== "playing" || spawnedCount >= 10 || wordPool.length === 0) return;
 
-    // Pick a word from the shuffled pool
     const word = wordPool[spawnedCount % wordPool.length];
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Slow start: 13s, gradually speeds up
     const duration = Math.max(5, 13 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
@@ -96,7 +93,6 @@ export function ArcadeMode({
       setSpawnedCount(0);
       setClearedCount(0);
       setBubbles([]);
-      // Reshuffle pool for next wave
       setWordPool(shuffleArray(wordPool));
     }
   }, [clearedCount, gameState, wordPool]);
@@ -124,7 +120,11 @@ export function ArcadeMode({
     const cleanInput = userInput.trim().toLowerCase();
     if (!cleanInput) return;
 
-    const targetIndex = bubbles.findIndex(b => b.hebrew === cleanInput || b.hebrew === userInput.trim());
+    // Check against all variations in the comma-separated hebrew field
+    const targetIndex = bubbles.findIndex(b => {
+      const variations = b.hebrew.split(',').map(v => v.trim().toLowerCase());
+      return variations.includes(cleanInput);
+    });
     
     if (targetIndex !== -1) {
       const target = bubbles[targetIndex];

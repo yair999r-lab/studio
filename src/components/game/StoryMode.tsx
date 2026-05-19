@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -6,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, BookOpen, CheckCircle, FileQuestion, GraduationCap, ChevronRight, HelpCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import storyData from "@/app/lib/story.json";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn } from "@/lib/utils";
@@ -17,8 +19,8 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   const [currentSelfQuestion, setCurrentSelfQuestion] = useState(0);
   const [selfRevealed, setSelfRevealed] = useState(false);
   const [selfScore, setSelfScore] = useState(0);
+  const [userResponse, setUserResponse] = useState("");
 
-  // Flatten vocab for O(1) lookup
   const vocabMap = useMemo(() => {
     const map = new Map<string, string>();
     vocabData.weeks.forEach(week => {
@@ -64,6 +66,17 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     return correct;
   };
 
+  const handleSelfAssessmentContinue = (wasCorrect: boolean) => {
+    if (wasCorrect) setSelfScore(s => s + 1);
+    setSelfRevealed(false);
+    setUserResponse("");
+    if (currentSelfQuestion + 1 < storyData.open_ended.length) {
+      setCurrentSelfQuestion(c => c + 1);
+    } else {
+      setActiveTab("read");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fcfdff] p-6 pb-20 max-w-5xl mx-auto">
       <header className="flex items-center gap-6 mb-10">
@@ -89,7 +102,6 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Read Story */}
         <TabsContent value="read" className="space-y-8 outline-none">
           <Card className="p-10 rounded-[40px] border-none shadow-[0_20px_60px_rgba(0,0,0,0.04)] bg-white">
             <div className="max-w-3xl mx-auto space-y-8">
@@ -107,7 +119,6 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           </div>
         </TabsContent>
 
-        {/* Tab 2: Multiple Choice Exam */}
         <TabsContent value="exam" className="outline-none">
           {showExamResults ? (
             <Card className="p-12 text-center rounded-[40px] shadow-2xl border-none">
@@ -157,7 +168,6 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           )}
         </TabsContent>
 
-        {/* Tab 3: Self-Assessment Review */}
         <TabsContent value="self" className="outline-none">
           <div className="max-w-3xl mx-auto space-y-12">
              <div className="text-center space-y-4">
@@ -165,7 +175,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                <p className="text-slate-400">Recall the details from the story. Test your depth.</p>
              </div>
 
-             <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white text-center relative overflow-hidden min-h-[400px] flex flex-col justify-center">
+             <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
                 <div className="absolute top-0 inset-x-0 h-3 bg-primary/10" />
                 
                 <div className="space-y-10">
@@ -176,24 +186,41 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                     </h3>
                   </div>
 
-                  {selfRevealed ? (
+                  {!selfRevealed ? (
+                    <div className="space-y-6 max-w-2xl mx-auto w-full">
+                      <Textarea 
+                        value={userResponse}
+                        onChange={(e) => setUserResponse(e.target.value)}
+                        placeholder="Draft your answer here to practice..."
+                        className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner"
+                      />
+                      <Button 
+                        onClick={() => setSelfRevealed(true)}
+                        className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto"
+                      >
+                        REVEAL ANSWER
+                      </Button>
+                    </div>
+                  ) : (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       <div className="p-8 bg-emerald-50 rounded-[32px] border-2 border-emerald-100">
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Correct Answer</p>
                         <p className="text-emerald-700 text-xl font-medium leading-relaxed italic">
                           "{storyData.open_ended[currentSelfQuestion].answer}"
                         </p>
                       </div>
+                      
                       <div className="space-y-6">
-                        <p className="font-bold text-slate-500">Did your internal answer match the logic above?</p>
+                        <p className="font-bold text-slate-500">Did your answer match the key points?</p>
                         <div className="flex gap-4 justify-center">
                           <Button 
-                            onClick={() => { setSelfScore(s => s+1); setSelfRevealed(false); if (currentSelfQuestion + 1 < storyData.open_ended.length) setCurrentSelfQuestion(c => c+1); else setActiveTab("read"); }}
+                            onClick={() => handleSelfAssessmentContinue(true)}
                             className="chunky-button chunky-success px-10 py-6"
                           >
                             YES, I GOT IT!
                           </Button>
                           <Button 
-                            onClick={() => { setSelfRevealed(false); if (currentSelfQuestion + 1 < storyData.open_ended.length) setCurrentSelfQuestion(c => c+1); else setActiveTab("read"); }}
+                            onClick={() => handleSelfAssessmentContinue(false)}
                             className="chunky-button chunky-error px-10 py-6"
                           >
                             NOT QUITE
@@ -201,13 +228,6 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <Button 
-                      onClick={() => setSelfRevealed(true)}
-                      className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto"
-                    >
-                      REVEAL ANSWER
-                    </Button>
                   )}
                 </div>
              </Card>

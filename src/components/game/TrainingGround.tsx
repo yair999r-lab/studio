@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -67,7 +68,6 @@ export function TrainingGround({
     let generatedQuestions = [];
     
     if (customPool) {
-      // FIX: Mistakes Review MUST use Level 1 (Multiple Choice)
       generatedQuestions = poolWords.map(word => {
         const distractors = vocabData.weeks.flatMap(w => w.words)
           .filter(w => w.id !== word.id)
