@@ -41,7 +41,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           <TooltipProvider key={i}>
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <span className="font-bold text-primary underline decoration-primary/30 decoration-2 underline-offset-4 cursor-help bg-primary/5 px-0.5 rounded">
+                <span className="font-bold text-primary underline decoration-primary/30 decoration-2 underline-offset-4 cursor-help bg-primary/5 px-0.5 rounded transition-all hover:scale-110">
                   {part}
                 </span>
               </TooltipTrigger>
@@ -77,9 +77,9 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] p-6 pb-20 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#fcfdff] p-6 pb-20 max-w-5xl mx-auto animated-bg">
       <header className="flex items-center gap-6 mb-10">
-        <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-slate-100">
+        <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-slate-100 transition-all duration-300 hover:scale-110 active:scale-95">
           <ArrowLeft className="w-8 h-8 text-slate-400" />
         </Button>
         <div>
@@ -90,13 +90,31 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className="bg-slate-100 p-1.5 rounded-2xl w-full max-w-md h-auto gap-1">
-          <TabsTrigger value="read" className="rounded-xl flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger 
+            value="read" 
+            className={cn(
+              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+              activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
+            )}
+          >
             <BookOpen className="w-4 h-4 mr-2" /> Read
           </TabsTrigger>
-          <TabsTrigger value="exam" className="rounded-xl flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger 
+            value="exam" 
+            className={cn(
+              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+              activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
+            )}
+          >
             <GraduationCap className="w-4 h-4 mr-2" /> Exam
           </TabsTrigger>
-          <TabsTrigger value="self" className="rounded-xl flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger 
+            value="self" 
+            className={cn(
+              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+              activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
+            )}
+          >
             <HelpCircle className="w-4 h-4 mr-2" /> Review
           </TabsTrigger>
         </TabsList>
@@ -142,7 +160,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                         key={optIdx}
                         onClick={() => setExamAnswers(prev => ({ ...prev, [i]: optIdx }))}
                         className={cn(
-                          "p-5 rounded-2xl text-left font-bold transition-all border-2",
+                          "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer",
                           examAnswers[i] === optIdx 
                             ? "bg-primary text-white border-primary shadow-lg" 
                             : "bg-white text-slate-600 border-slate-100 hover:border-primary/20"

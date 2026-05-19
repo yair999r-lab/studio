@@ -56,12 +56,7 @@ export default function Home() {
   const hasEnoughMistakes = mistakes.length >= 10;
 
   return (
-    <div className="min-h-screen bg-[#f8faff] font-body overflow-hidden relative flex flex-col">
-      {/* Subtle Animated Background Blobs */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full -translate-y-1/2 translate-x-1/2 blur-[120px] pointer-events-none animate-blob"></div>
-      <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-indigo-100/30 rounded-full translate-y-1/2 -translate-x-1/2 blur-[120px] pointer-events-none animate-blob animation-delay-2000"></div>
-      <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-purple-100/20 rounded-full -translate-y-1/2 -translate-x-1/2 blur-[100px] pointer-events-none animate-blob animation-delay-4000"></div>
-
+    <div className="min-h-screen font-body overflow-hidden relative flex flex-col animated-bg">
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 relative z-10 flex flex-col">
         <header className="flex items-center justify-between mb-16">
           <div className="flex items-center gap-4">
@@ -94,7 +89,7 @@ export default function Home() {
             <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Flip cards and build your basic vocabulary. Essential for beginners.
             </p>
-            <Button onClick={() => setCurrentZone("study")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
+            <Button onClick={() => setCurrentZone("study")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               ENTER ROOM
             </Button>
           </Card>
@@ -107,7 +102,7 @@ export default function Home() {
             <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Interactive quizzes across 3 difficulty tiers to solidify your learning.
             </p>
-            <Button onClick={() => setCurrentZone("training")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
+            <Button onClick={() => setCurrentZone("training")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               START DRILLS
             </Button>
           </Card>
@@ -120,7 +115,7 @@ export default function Home() {
             <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Test your reflexes and speed. Pop word bubbles and maintain your combo!
             </p>
-            <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
+            <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               PLAY GAME
             </Button>
           </Card>
@@ -133,7 +128,7 @@ export default function Home() {
             <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Read an immersive story, explore vocabulary, and take a final exam.
             </p>
-            <Button onClick={() => setCurrentZone("story")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
+            <Button onClick={() => setCurrentZone("story")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               OPEN STORY
             </Button>
           </Card>
@@ -145,8 +140,8 @@ export default function Home() {
               disabled={!hasEnoughMistakes}
               onClick={() => setCurrentZone("mistakes")}
               className={cn(
-                "w-full chunky-button border-b-8 flex items-center justify-center gap-4 py-8 text-xl font-headline transition-all",
-                hasEnoughMistakes ? "chunky-primary" : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed opacity-60"
+                "w-full chunky-button border-b-8 flex items-center justify-center gap-4 py-8 text-xl font-headline transition-all duration-300",
+                hasEnoughMistakes ? "chunky-primary hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer" : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed opacity-60"
               )}
             >
               <BrainCircuit className={cn("w-8 h-8", hasEnoughMistakes ? "text-white" : "text-slate-400")} />

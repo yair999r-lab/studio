@@ -65,7 +65,8 @@ export function ArcadeMode({
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    const duration = Math.max(6, 16 - (level - 1) * 1.5);
+    // Initial slow speed: 14s. Decreases with level.
+    const duration = Math.max(7, 14 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
       id: Math.random().toString(36).substring(2, 9),
@@ -84,7 +85,8 @@ export function ArcadeMode({
 
   useEffect(() => {
     if (gameState === "playing" && spawnedCount < 10) {
-      const spawnDelay = Math.max(1200, 3500 - (level - 1) * 300);
+      // Slower spawn rate: 3.5s base
+      const spawnDelay = Math.max(1500, 3500 - (level - 1) * 400);
       const timer = setTimeout(spawnOneBubble, spawnDelay);
       return () => clearTimeout(timer);
     }
@@ -147,9 +149,9 @@ export function ArcadeMode({
 
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 animated-bg">
         <div className="max-w-xl w-full bg-white rounded-[40px] p-10 shadow-2xl text-center border-b-8 border-slate-100">
-          <div className="w-20 h-20 bg-sky-500 rounded-[28px] mx-auto mb-6 flex items-center justify-center border-4 border-white shadow-xl">
+          <div className="w-20 h-20 bg-sky-500 rounded-[28px] mx-auto mb-6 flex items-center justify-center border-4 border-white shadow-xl transition-all duration-500 hover:rotate-12">
             <Zap className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-headline font-bold text-slate-800 mb-2">Arcade Mode</h1>
@@ -159,7 +161,11 @@ export function ArcadeMode({
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Choose Practice Weeks</p>
             <div className="space-y-3">
               {vocabData.weeks.map(w => (
-                <div key={w.week_id} className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-white rounded-xl transition-colors" onClick={() => toggleWeek(w.week_id)}>
+                <div 
+                  key={w.week_id} 
+                  className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-white rounded-xl transition-all duration-300 hover:scale-105 active:scale-95" 
+                  onClick={() => toggleWeek(w.week_id)}
+                >
                   <Checkbox checked={selectedWeeks.includes(w.week_id)} />
                   <span className="font-bold text-slate-700">Week {w.week_id}: {w.title}</span>
                 </div>
@@ -170,11 +176,11 @@ export function ArcadeMode({
           <Button 
             disabled={selectedWeeks.length === 0}
             onClick={initGame} 
-            className="w-full chunky-button chunky-primary text-xl py-8"
+            className="w-full chunky-button chunky-primary text-xl py-8 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
           >
             START GAME
           </Button>
-          <Button variant="ghost" onClick={onBack} className="mt-4 text-slate-400 font-bold">Return to Lobby</Button>
+          <Button variant="ghost" onClick={onBack} className="mt-4 text-slate-400 font-bold hover:text-primary transition-all duration-300 hover:scale-105 active:scale-95">Return to Lobby</Button>
         </div>
       </div>
     );
@@ -182,9 +188,9 @@ export function ArcadeMode({
 
   if (gameState === "gameover") {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6 animated-bg">
         <div className="max-w-2xl w-full bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-rose-500 text-center">
-          <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-6" />
+          <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-6 transition-all duration-700 hover:scale-125" />
           <h1 className="text-4xl font-headline font-bold text-slate-800 mb-8">Game Over!</h1>
           
           <div className="grid grid-cols-2 gap-4 mb-10">
@@ -202,7 +208,7 @@ export function ArcadeMode({
             <h3 className="font-bold text-slate-700 mb-4">Words to remember:</h3>
             <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-4 bg-slate-50 rounded-2xl border">
               {missedWords.length > 0 ? Array.from(new Set(missedWords.map(w => w.english))).map(en => (
-                <span key={en} className="bg-white border px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
+                <span key={en} className="bg-white border px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:scale-110 transition-transform cursor-default">
                   {en}
                 </span>
               )) : <p className="text-slate-400 italic">None! You popped them all.</p>}
@@ -210,10 +216,10 @@ export function ArcadeMode({
           </div>
 
           <div className="space-y-4">
-            <Button onClick={() => setGameState("ready")} className="w-full chunky-button chunky-primary py-8 text-xl">
+            <Button onClick={() => setGameState("ready")} className="w-full chunky-button chunky-primary py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               TRY AGAIN
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold">RETURN TO LOBBY</Button>
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold transition-all duration-300 hover:scale-105 active:scale-95">RETURN TO LOBBY</Button>
           </div>
         </div>
       </div>
@@ -224,7 +230,7 @@ export function ArcadeMode({
     <div className="fixed inset-0 bg-sky-400 overflow-hidden font-headline select-none">
       <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-start z-30 pointer-events-none">
         <div className="flex items-center gap-4 pointer-events-auto">
-          <Button variant="ghost" onClick={onBack} className="bg-white/20 hover:bg-white/40 rounded-2xl text-white font-bold">
+          <Button variant="ghost" onClick={onBack} className="bg-white/20 hover:bg-white/40 rounded-2xl text-white font-bold transition-all duration-300 hover:scale-110 active:scale-95">
             <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
           </Button>
           <div className="bg-white/90 backdrop-blur px-6 py-2 rounded-2xl shadow-lg border-b-4 border-slate-200">
@@ -238,10 +244,10 @@ export function ArcadeMode({
         <div className="flex flex-col items-end gap-2">
           <div className="bg-white/90 backdrop-blur px-6 py-3 rounded-[24px] shadow-lg border-b-4 border-slate-200 flex gap-2">
             {[...Array(5)].map((_, i) => (
-              <Heart key={i} className={cn("w-6 h-6", i < hearts ? "text-rose-500 fill-rose-500" : "text-slate-200")} />
+              <Heart key={i} className={cn("w-6 h-6 transition-all duration-300", i < hearts ? "text-rose-500 fill-rose-500 scale-110" : "text-slate-200")} />
             ))}
           </div>
-          <div className="bg-amber-400 text-white px-8 py-2 rounded-2xl shadow-lg border-b-4 border-amber-600 font-bold text-2xl">
+          <div className="bg-amber-400 text-white px-8 py-2 rounded-2xl shadow-lg border-b-4 border-amber-600 font-bold text-2xl animate-pulse">
             {score}
           </div>
         </div>
@@ -252,7 +258,7 @@ export function ArcadeMode({
           <div 
             key={b.id}
             onAnimationEnd={() => handleMiss(b.id)}
-            className={cn("bubble w-32 h-32", b.color)}
+            className={cn("bubble w-32 h-32 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 cursor-pointer pointer-events-auto", b.color)}
             style={{ 
               left: `${b.x}%`, 
               animationDuration: `${b.duration}s`,
@@ -272,11 +278,11 @@ export function ArcadeMode({
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="Type Hebrew..."
-            className="h-20 text-3xl rounded-[32px] border-4 border-white bg-white/95 shadow-2xl pr-36 text-center text-slate-800 focus-visible:ring-0 font-bold"
+            className="h-20 text-3xl rounded-[32px] border-4 border-white bg-white/95 shadow-2xl pr-36 text-center text-slate-800 focus-visible:ring-0 font-bold transition-all duration-300 focus:scale-105"
             dir="rtl"
             onBlur={() => inputRef.current?.focus()}
           />
-          <Button type="submit" className="absolute right-3 top-3 bottom-3 rounded-[24px] chunky-primary px-10 text-xl">POP!</Button>
+          <Button type="submit" className="absolute right-3 top-3 bottom-3 rounded-[24px] chunky-primary px-10 text-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer">POP!</Button>
         </form>
       </div>
     </div>
