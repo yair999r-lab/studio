@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Trophy, BrainCircuit } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { isSpellingCorrect } from "@/lib/levenshtein";
 import vocabData from "@/app/lib/vocabulary.json";
@@ -278,7 +277,7 @@ export function TrainingGround({
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (userAnswer.trim()) {
-                      const { isCorrect, isAlmost } = isSpellingCorrect(q.answer, userAnswer);
+                      const { isCorrect, isAlmost } = isSpellingCorrect(q.word?.accepted_answers || q.answer, userAnswer);
                       processAnswer(isCorrect, q, isAlmost);
                     }
                   }}

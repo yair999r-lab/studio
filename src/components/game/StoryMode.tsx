@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, BookOpen, CheckCircle, FileQuestion, GraduationCap, ChevronRight, HelpCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle, GraduationCap, ChevronRight, HelpCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import storyData from "@/app/lib/story.json";
 import vocabData from "@/app/lib/vocabulary.json";

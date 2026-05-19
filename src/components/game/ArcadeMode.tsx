@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -14,6 +13,7 @@ type ActiveBubble = {
   wordId: string;
   english: string;
   hebrew: string;
+  acceptedAnswers: string[];
   x: number;
   color: string;
   duration: number;
@@ -65,7 +65,6 @@ export function ArcadeMode({
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // Physics Adjustment: Starting at 16s fall time (very slow)
     const duration = Math.max(6, 16 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
@@ -73,6 +72,7 @@ export function ArcadeMode({
       wordId: word.id,
       english: word.english,
       hebrew: word.hebrew,
+      acceptedAnswers: word.accepted_answers || [word.hebrew],
       x,
       color,
       duration
@@ -123,10 +123,8 @@ export function ArcadeMode({
     const cleanInput = userInput.trim();
     if (!cleanInput) return;
 
-    // Find the first bubble that matches the user input against any of its Hebrew variations
     const targetIndex = bubbles.findIndex(bubble => {
-      const validAnswers = bubble.hebrew.split(',').map(word => word.trim());
-      return validAnswers.some(validWord => cleanInput === validWord);
+      return bubble.acceptedAnswers.some(validWord => cleanInput === validWord.trim());
     });
     
     if (targetIndex !== -1) {
@@ -137,7 +135,6 @@ export function ArcadeMode({
       setClearedCount(c => c + 1);
       setUserInput("");
     } else {
-      // Clear input on wrong answer to let user try again
       setUserInput("");
     }
   };

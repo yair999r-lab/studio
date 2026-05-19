@@ -1,4 +1,3 @@
-
 export function getLevenshteinDistance(a: string, b: string): number {
   const matrix = Array.from({ length: a.length + 1 }, () =>
     Array.from({ length: b.length + 1 }, (_, i) => i)
@@ -22,9 +21,8 @@ export function getLevenshteinDistance(a: string, b: string): number {
   return matrix[a.length][b.length];
 }
 
-export function isSpellingCorrect(target: string, input: string): { isCorrect: boolean; isAlmost: boolean } {
-  // Support comma-separated variations
-  const variations = target.split(',').map(v => v.trim());
+export function isSpellingCorrect(target: string | string[], input: string): { isCorrect: boolean; isAlmost: boolean } {
+  const variations = Array.isArray(target) ? target : target.split(',').map(v => v.trim());
   const userInput = input.trim();
 
   let almostMatch = false;
@@ -36,7 +34,6 @@ export function isSpellingCorrect(target: string, input: string): { isCorrect: b
       return { isCorrect: true, isAlmost: false };
     }
     
-    // Rule: target length >= 5 allow 1 distance as "almost"
     if (variation.length >= 5 && distance === 1) {
       almostMatch = true;
     }
