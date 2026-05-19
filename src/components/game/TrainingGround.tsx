@@ -142,10 +142,10 @@ export function TrainingGround({
 
   if (phase === "setup") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-        <div className="w-full max-w-2xl bg-white rounded-[40px] p-10 shadow-2xl border-2 border-slate-100 bouncy-entrance">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-[40px] p-10 shadow-xl border border-white/50 bouncy-entrance">
           <div className="flex items-center gap-4 mb-10">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl hover:bg-slate-50 p-2">
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl hover:bg-white/50 p-2 transition-all duration-300 hover:scale-110">
               <ArrowLeft className="w-8 h-8 text-slate-400" />
             </Button>
             <h1 className="text-3xl font-headline font-bold text-slate-800">Training Ground</h1>
@@ -160,8 +160,8 @@ export function TrainingGround({
                     key={d}
                     onClick={() => setDifficulty(d)}
                     className={cn(
-                      "chunky-button capitalize text-lg py-6",
-                      difficulty === d ? "chunky-primary" : "bg-white text-slate-400 border-slate-200"
+                      "chunky-button capitalize text-lg py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer",
+                      difficulty === d ? "chunky-primary" : "bg-white/50 text-slate-400 border-slate-200"
                     )}
                   >
                     {d}
@@ -176,14 +176,14 @@ export function TrainingGround({
                 <Button 
                   variant={selectedWeek === null ? "default" : "outline"}
                   onClick={() => setSelectedWeek(null)}
-                  className="rounded-xl px-6 py-6 font-bold"
+                  className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95"
                 >All Weeks</Button>
                 {vocabData.weeks.map(w => (
                   <Button 
                     key={w.week_id}
                     variant={selectedWeek === w.week_id ? "default" : "outline"}
                     onClick={() => setSelectedWeek(w.week_id)}
-                    className="rounded-xl px-6 py-6 font-bold"
+                    className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95"
                   >Week {w.week_id}</Button>
                 ))}
               </div>
@@ -192,7 +192,7 @@ export function TrainingGround({
 
           <Button 
             onClick={() => startSession()}
-            className="w-full chunky-button chunky-primary text-xl py-8 mt-12"
+            className="w-full chunky-button chunky-primary text-xl py-8 mt-12 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
           >
             START SESSION
           </Button>
@@ -206,10 +206,10 @@ export function TrainingGround({
     if (!q) return null;
 
     return (
-      <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 p-8 flex flex-col items-center">
         <div className="w-full max-w-4xl">
           <header className="flex items-center gap-6 mb-12">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl bg-white"><ArrowLeft className="w-6 h-6"/></Button>
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/50 transition-all duration-300 hover:scale-110 active:scale-95"><ArrowLeft className="w-6 h-6"/></Button>
             <div className="flex-1">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-primary font-bold">
@@ -219,11 +219,11 @@ export function TrainingGround({
                   {isReviewMode ? "Review" : difficulty} MODE
                 </span>
               </div>
-              <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white" />
+              <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white/50" />
             </div>
           </header>
 
-          <main className="bg-white rounded-[40px] p-12 shadow-2xl border-b-8 border-slate-100 min-h-[450px] flex items-center justify-center">
+          <main className="bg-white/80 backdrop-blur-md rounded-[40px] p-12 shadow-xl border border-white/50 min-h-[450px] flex items-center justify-center">
             {q.type === "choice" && (
               <div className="w-full text-center space-y-12">
                 <div className="space-y-4">
@@ -235,7 +235,7 @@ export function TrainingGround({
                     <button
                       key={i}
                       onClick={() => processAnswer(opt.hebrew === q.answer, q)}
-                      className="chunky-button bg-white text-slate-700 border-slate-200 text-2xl py-8"
+                      className="chunky-button bg-white/50 text-slate-700 border-slate-200 text-2xl py-8 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                       dir="rtl"
                     >
                       {opt.hebrew}
@@ -258,7 +258,7 @@ export function TrainingGround({
                     <button
                       key={i}
                       onClick={() => processAnswer(opt.is_correct, q)}
-                      className="chunky-button bg-white text-slate-700 border-slate-200 text-xl py-6"
+                      className="chunky-button bg-white/50 text-slate-700 border-slate-200 text-xl py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                     >
                       {opt.words ? opt.words.join(' / ') : opt.word}
                     </button>
@@ -288,7 +288,7 @@ export function TrainingGround({
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Type in English..."
-                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 focus:border-primary transition-all font-bold"
+                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-white shadow-sm focus:border-primary transition-all font-bold bg-white/50 backdrop-blur-sm"
                   />
                   <p className="text-slate-400 font-bold text-sm">PRESS ENTER TO SUBMIT</p>
                 </form>
@@ -308,28 +308,28 @@ export function TrainingGround({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-      <div className="w-full max-w-xl bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-primary text-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-xl bg-white/80 backdrop-blur-md rounded-[40px] p-12 shadow-xl border border-white/50 text-center">
         <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
         <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Mistakes Cleared!" : "Training Complete!"}</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">You&apos;re building an incredible foundation.</p>
         
         <div className="grid grid-cols-2 gap-6 mb-12">
-          <div className="bg-emerald-50 p-8 rounded-[32px] border-2 border-emerald-100">
+          <div className="bg-emerald-50/50 p-8 rounded-[32px] border border-emerald-100">
             <p className="text-emerald-700 font-bold text-5xl mb-2">{sessionResults.correct}</p>
             <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest">Mastered</p>
           </div>
-          <div className="bg-rose-50 p-8 rounded-[32px] border-2 border-rose-100">
+          <div className="bg-rose-50/50 p-8 rounded-[32px] border border-rose-100">
             <p className="text-rose-700 font-bold text-5xl mb-2">{sessionResults.wrong}</p>
             <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Still Tough</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <Button onClick={() => startSession(mistakePool)} className="w-full chunky-button chunky-primary py-8 text-xl">
+          <Button onClick={() => startSession(mistakePool)} className="w-full chunky-button chunky-primary py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
             {isReviewMode ? "REVIEW AGAIN" : "TRAIN AGAIN"}
           </Button>
-          <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold">RETURN TO LOBBY</Button>
+          <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold transition-all duration-300 hover:scale-105 active:scale-95">RETURN TO LOBBY</Button>
         </div>
       </div>
     </div>

@@ -65,8 +65,7 @@ export function ArcadeMode({
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // Initial slow speed: 14s. Decreases with level.
-    const duration = Math.max(7, 14 - (level - 1) * 1.5);
+    const duration = Math.max(7, 13 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
       id: Math.random().toString(36).substring(2, 9),
@@ -85,8 +84,7 @@ export function ArcadeMode({
 
   useEffect(() => {
     if (gameState === "playing" && spawnedCount < 10) {
-      // Slower spawn rate: 3.5s base
-      const spawnDelay = Math.max(1500, 3500 - (level - 1) * 400);
+      const spawnDelay = Math.max(2000, 4000 - (level - 1) * 400);
       const timer = setTimeout(spawnOneBubble, spawnDelay);
       return () => clearTimeout(timer);
     }
@@ -149,21 +147,21 @@ export function ArcadeMode({
 
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 animated-bg">
-        <div className="max-w-xl w-full bg-white rounded-[40px] p-10 shadow-2xl text-center border-b-8 border-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="max-w-xl w-full bg-white/80 backdrop-blur-md rounded-[40px] p-10 shadow-xl border border-white/50 text-center">
           <div className="w-20 h-20 bg-sky-500 rounded-[28px] mx-auto mb-6 flex items-center justify-center border-4 border-white shadow-xl transition-all duration-500 hover:rotate-12">
             <Zap className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-headline font-bold text-slate-800 mb-2">Arcade Mode</h1>
           <p className="text-slate-500 mb-8 text-sm">Select weeks and type Hebrew to pop falling words.</p>
           
-          <div className="bg-slate-50 p-6 rounded-3xl mb-8 border-2 border-slate-100 text-left">
+          <div className="bg-white/50 p-6 rounded-3xl mb-8 border border-slate-100 text-left">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Choose Practice Weeks</p>
             <div className="space-y-3">
               {vocabData.weeks.map(w => (
                 <div 
                   key={w.week_id} 
-                  className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-white rounded-xl transition-all duration-300 hover:scale-105 active:scale-95" 
+                  className="flex items-center space-x-3 cursor-pointer p-2 hover:bg-white/80 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95" 
                   onClick={() => toggleWeek(w.week_id)}
                 >
                   <Checkbox checked={selectedWeeks.includes(w.week_id)} />
@@ -188,17 +186,17 @@ export function ArcadeMode({
 
   if (gameState === "gameover") {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6 animated-bg">
-        <div className="max-w-2xl w-full bg-white rounded-[40px] p-12 shadow-2xl border-t-8 border-rose-500 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-slate-50 to-rose-50 flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full bg-white/80 backdrop-blur-md rounded-[40px] p-12 shadow-xl border border-white/50 text-center">
           <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-6 transition-all duration-700 hover:scale-125" />
           <h1 className="text-4xl font-headline font-bold text-slate-800 mb-8">Game Over!</h1>
           
           <div className="grid grid-cols-2 gap-4 mb-10">
-            <div className="bg-sky-50 p-6 rounded-[32px] border-2 border-sky-100">
+            <div className="bg-sky-50/50 p-6 rounded-[32px] border border-sky-100">
               <p className="text-4xl font-bold text-sky-600 mb-1">{score}</p>
               <p className="text-xs font-bold text-sky-400 uppercase tracking-widest">Score</p>
             </div>
-            <div className="bg-indigo-50 p-6 rounded-[32px] border-2 border-indigo-100">
+            <div className="bg-indigo-50/50 p-6 rounded-[32px] border border-indigo-100">
               <p className="text-4xl font-bold text-indigo-600 mb-1">{level}</p>
               <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Final Level</p>
             </div>
@@ -206,9 +204,9 @@ export function ArcadeMode({
 
           <div className="text-left mb-10">
             <h3 className="font-bold text-slate-700 mb-4">Words to remember:</h3>
-            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-4 bg-slate-50 rounded-2xl border">
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-4 bg-white/50 rounded-2xl border border-slate-100">
               {missedWords.length > 0 ? Array.from(new Set(missedWords.map(w => w.english))).map(en => (
-                <span key={en} className="bg-white border px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:scale-110 transition-transform cursor-default">
+                <span key={en} className="bg-white border border-slate-100 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:scale-110 transition-transform cursor-default">
                   {en}
                 </span>
               )) : <p className="text-slate-400 italic">None! You popped them all.</p>}
@@ -258,7 +256,7 @@ export function ArcadeMode({
           <div 
             key={b.id}
             onAnimationEnd={() => handleMiss(b.id)}
-            className={cn("bubble w-32 h-32 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 cursor-pointer pointer-events-auto", b.color)}
+            className={cn("bubble w-32 h-32 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 cursor-pointer pointer-events-auto shadow-xl border-4 border-white/40", b.color)}
             style={{ 
               left: `${b.x}%`, 
               animationDuration: `${b.duration}s`,

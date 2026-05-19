@@ -77,180 +77,182 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfdff] p-6 pb-20 max-w-5xl mx-auto animated-bg">
-      <header className="flex items-center gap-6 mb-10">
-        <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-slate-100 transition-all duration-300 hover:scale-110 active:scale-95">
-          <ArrowLeft className="w-8 h-8 text-slate-400" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-headline font-bold text-slate-800">{storyData.title}</h1>
-          <p className="text-slate-400 text-sm font-medium">Immersive Reading & Comprehension</p>
-        </div>
-      </header>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="bg-slate-100 p-1.5 rounded-2xl w-full max-w-md h-auto gap-1">
-          <TabsTrigger 
-            value="read" 
-            className={cn(
-              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-              activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
-            )}
-          >
-            <BookOpen className="w-4 h-4 mr-2" /> Read
-          </TabsTrigger>
-          <TabsTrigger 
-            value="exam" 
-            className={cn(
-              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-              activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
-            )}
-          >
-            <GraduationCap className="w-4 h-4 mr-2" /> Exam
-          </TabsTrigger>
-          <TabsTrigger 
-            value="self" 
-            className={cn(
-              "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-              activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-500"
-            )}
-          >
-            <HelpCircle className="w-4 h-4 mr-2" /> Review
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="read" className="space-y-8 outline-none">
-          <Card className="p-10 rounded-[40px] border-none shadow-[0_20px_60px_rgba(0,0,0,0.04)] bg-white">
-            <div className="max-w-3xl mx-auto space-y-8">
-              {storyData.paragraphs.map((para, i) => (
-                <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
-                  {highlightText(para)}
-                </p>
-              ))}
-            </div>
-          </Card>
-          <div className="flex justify-center">
-             <Button onClick={() => setActiveTab("exam")} className="chunky-button chunky-primary px-12 py-8 text-xl">
-               START THE EXAM <ChevronRight className="ml-2" />
-             </Button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 p-6 pb-20 transition-all duration-500">
+      <div className="max-w-5xl mx-auto">
+        <header className="flex items-center gap-6 mb-10">
+          <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-white/50 transition-all duration-300 hover:scale-110 active:scale-95">
+            <ArrowLeft className="w-8 h-8 text-slate-400" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-headline font-bold text-slate-800">{storyData.title}</h1>
+            <p className="text-slate-400 text-sm font-medium">Immersive Reading & Comprehension</p>
           </div>
-        </TabsContent>
+        </header>
 
-        <TabsContent value="exam" className="outline-none">
-          {showExamResults ? (
-            <Card className="p-12 text-center rounded-[40px] shadow-2xl border-none">
-               <CheckCircle className="w-24 h-24 text-emerald-500 mx-auto mb-6" />
-               <h2 className="text-4xl font-headline font-bold text-slate-800 mb-2">Exam Complete!</h2>
-               <p className="text-slate-400 mb-10">You scored {calculateExamScore()} out of {storyData.multiple_choice.length}</p>
-               <Button onClick={() => { setShowExamResults(false); setExamAnswers({}); }} className="chunky-button chunky-primary py-6 px-12">
-                 RETRY EXAM
-               </Button>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {storyData.multiple_choice.map((q, i) => (
-                <Card key={i} className="p-8 rounded-[32px] border-2 border-slate-50 shadow-sm bg-white">
-                  <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-4">
-                    <span className="text-primary/30">Q{i+1}.</span>
-                    {q.question}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {q.options.map((opt, optIdx) => (
-                      <button
-                        key={optIdx}
-                        onClick={() => setExamAnswers(prev => ({ ...prev, [i]: optIdx }))}
-                        className={cn(
-                          "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer",
-                          examAnswers[i] === optIdx 
-                            ? "bg-primary text-white border-primary shadow-lg" 
-                            : "bg-white text-slate-600 border-slate-100 hover:border-primary/20"
-                        )}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </Card>
-              ))}
-              <div className="py-10 flex justify-center">
-                <Button 
-                  disabled={Object.keys(examAnswers).length < storyData.multiple_choice.length}
-                  onClick={() => setShowExamResults(true)} 
-                  className="chunky-button chunky-primary px-16 py-8 text-xl"
-                >
-                  SUBMIT EXAM
-                </Button>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="bg-white/50 backdrop-blur-sm p-1.5 rounded-2xl w-full max-w-md h-auto gap-1 border border-white/50 shadow-sm">
+            <TabsTrigger 
+              value="read" 
+              className={cn(
+                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+                activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+              )}
+            >
+              <BookOpen className="w-4 h-4 mr-2" /> Read
+            </TabsTrigger>
+            <TabsTrigger 
+              value="exam" 
+              className={cn(
+                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+                activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+              )}
+            >
+              <GraduationCap className="w-4 h-4 mr-2" /> Exam
+            </TabsTrigger>
+            <TabsTrigger 
+              value="self" 
+              className={cn(
+                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
+                activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+              )}
+            >
+              <HelpCircle className="w-4 h-4 mr-2" /> Review
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="read" className="space-y-8 outline-none">
+            <Card className="p-10 rounded-[40px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md">
+              <div className="max-w-3xl mx-auto space-y-8">
+                {storyData.paragraphs.map((para, i) => (
+                  <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
+                    {highlightText(para)}
+                  </p>
+                ))}
               </div>
+            </Card>
+            <div className="flex justify-center">
+               <Button onClick={() => setActiveTab("exam")} className="chunky-button chunky-primary px-12 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+                 START THE EXAM <ChevronRight className="ml-2" />
+               </Button>
             </div>
-          )}
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="self" className="outline-none">
-          <div className="max-w-3xl mx-auto space-y-12">
-             <div className="text-center space-y-4">
-               <h2 className="text-4xl font-headline font-bold text-slate-800">Open Assessment</h2>
-               <p className="text-slate-400">Recall the details from the story. Test your depth.</p>
-             </div>
-
-             <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
-                <div className="absolute top-0 inset-x-0 h-3 bg-primary/10" />
-                
-                <div className="space-y-10">
-                  <div className="space-y-4">
-                    <p className="text-xs font-bold text-primary uppercase tracking-widest">Question {currentSelfQuestion + 1} of {storyData.open_ended.length}</p>
-                    <h3 className="text-3xl font-headline font-bold text-slate-800 leading-tight">
-                      {storyData.open_ended[currentSelfQuestion].question}
+          <TabsContent value="exam" className="outline-none">
+            {showExamResults ? (
+              <Card className="p-12 text-center rounded-[40px] shadow-xl border border-white/50 bg-white/80 backdrop-blur-md">
+                 <CheckCircle className="w-24 h-24 text-emerald-500 mx-auto mb-6" />
+                 <h2 className="text-4xl font-headline font-bold text-slate-800 mb-2">Exam Complete!</h2>
+                 <p className="text-slate-400 mb-10">You scored {calculateExamScore()} out of {storyData.multiple_choice.length}</p>
+                 <Button onClick={() => { setShowExamResults(false); setExamAnswers({}); }} className="chunky-button chunky-primary py-6 px-12 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+                   RETRY EXAM
+                 </Button>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {storyData.multiple_choice.map((q, i) => (
+                  <Card key={i} className="p-8 rounded-[32px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md">
+                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-4">
+                      <span className="text-primary/30">Q{i+1}.</span>
+                      {q.question}
                     </h3>
-                  </div>
-
-                  {!selfRevealed ? (
-                    <div className="space-y-6 max-w-2xl mx-auto w-full">
-                      <Textarea 
-                        value={userResponse}
-                        onChange={(e) => setUserResponse(e.target.value)}
-                        placeholder="Draft your answer here to practice..."
-                        className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner"
-                      />
-                      <Button 
-                        onClick={() => setSelfRevealed(true)}
-                        className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto"
-                      >
-                        REVEAL ANSWER
-                      </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {q.options.map((opt, optIdx) => (
+                        <button
+                          key={optIdx}
+                          onClick={() => setExamAnswers(prev => ({ ...prev, [i]: optIdx }))}
+                          className={cn(
+                            "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer",
+                            examAnswers[i] === optIdx 
+                              ? "bg-primary text-white border-primary shadow-lg" 
+                              : "bg-white/50 text-slate-600 border-slate-100 hover:border-primary/20"
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
                     </div>
-                  ) : (
-                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <div className="p-8 bg-emerald-50 rounded-[32px] border-2 border-emerald-100">
-                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Correct Answer</p>
-                        <p className="text-emerald-700 text-xl font-medium leading-relaxed italic">
-                          "{storyData.open_ended[currentSelfQuestion].answer}"
-                        </p>
+                  </Card>
+                ))}
+                <div className="py-10 flex justify-center">
+                  <Button 
+                    disabled={Object.keys(examAnswers).length < storyData.multiple_choice.length}
+                    onClick={() => setShowExamResults(true)} 
+                    className="chunky-button chunky-primary px-16 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                  >
+                    SUBMIT EXAM
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="self" className="outline-none">
+            <div className="max-w-3xl mx-auto space-y-12">
+               <div className="text-center space-y-4">
+                 <h2 className="text-4xl font-headline font-bold text-slate-800">Open Assessment</h2>
+                 <p className="text-slate-400">Recall the details from the story. Test your depth.</p>
+               </div>
+
+               <Card className="p-12 rounded-[48px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
+                  <div className="absolute top-0 inset-x-0 h-3 bg-primary/10" />
+                  
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Question {currentSelfQuestion + 1} of {storyData.open_ended.length}</p>
+                      <h3 className="text-3xl font-headline font-bold text-slate-800 leading-tight">
+                        {storyData.open_ended[currentSelfQuestion].question}
+                      </h3>
+                    </div>
+
+                    {!selfRevealed ? (
+                      <div className="space-y-6 max-w-2xl mx-auto w-full">
+                        <Textarea 
+                          value={userResponse}
+                          onChange={(e) => setUserResponse(e.target.value)}
+                          placeholder="Draft your answer here to practice..."
+                          className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner"
+                        />
+                        <Button 
+                          onClick={() => setSelfRevealed(true)}
+                          className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                        >
+                          REVEAL ANSWER
+                        </Button>
                       </div>
-                      
-                      <div className="space-y-6">
-                        <p className="font-bold text-slate-500">Did your answer match the key points?</p>
-                        <div className="flex gap-4 justify-center">
-                          <Button 
-                            onClick={() => handleSelfAssessmentContinue(true)}
-                            className="chunky-button chunky-success px-10 py-6"
-                          >
-                            YES, I GOT IT!
-                          </Button>
-                          <Button 
-                            onClick={() => handleSelfAssessmentContinue(false)}
-                            className="chunky-button chunky-error px-10 py-6"
-                          >
-                            NOT QUITE
-                          </Button>
+                    ) : (
+                      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="p-8 bg-emerald-50/50 rounded-[32px] border-2 border-emerald-100">
+                          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Correct Answer</p>
+                          <p className="text-emerald-700 text-xl font-medium leading-relaxed italic">
+                            "{storyData.open_ended[currentSelfQuestion].answer}"
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-6">
+                          <p className="font-bold text-slate-500">Did your answer match the key points?</p>
+                          <div className="flex gap-4 justify-center">
+                            <Button 
+                              onClick={() => handleSelfAssessmentContinue(true)}
+                              className="chunky-button chunky-success px-10 py-6 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                            >
+                              YES, I GOT IT!
+                            </Button>
+                            <Button 
+                              onClick={() => handleSelfAssessmentContinue(false)}
+                              className="chunky-button chunky-error px-10 py-6 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                            >
+                              NOT QUITE
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                    )}
+                  </div>
+               </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
