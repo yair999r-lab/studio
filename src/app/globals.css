@@ -51,27 +51,15 @@
   }
 
   .bubble {
-    @apply absolute flex items-center justify-center rounded-full border-4 border-white/50 shadow-2xl p-4 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer;
+    @apply absolute flex items-center justify-center rounded-full border-4 border-white/50 shadow-2xl p-4 transition-all duration-300 hover:scale-110 hover:shadow-xl active:scale-95 cursor-pointer;
     top: -15%;
     will-change: top;
-    animation: fallDown linear forwards;
+    animation: fallDown 14s linear forwards;
   }
 
   @keyframes fallDown {
     0% { top: -15%; }
     100% { top: 110%; }
-  }
-
-  @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .animated-bg {
-    background: linear-gradient(-45deg, #f8fafc, #e0e7ff, #f3e8ff, #ffffff);
-    background-size: 400% 400%;
-    animation: gradientMove 15s ease infinite;
   }
 
   .card-3d-wrapper {
@@ -105,22 +93,5 @@
     50% { transform: scale(1.05); }
     70% { transform: scale(0.95); }
     100% { transform: scale(1); opacity: 1; }
-  }
-
-  /* Animated Blobs */
-  @keyframes blob-float {
-    0% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0, 0) scale(1); }
-  }
-  .animate-blob {
-    animation: blob-float 25s infinite alternate ease-in-out;
-  }
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  .animation-delay-4000 {
-    animation-delay: 4s;
   }
 }

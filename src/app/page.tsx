@@ -29,12 +29,13 @@ export default function Home() {
 
   if (!loaded) return null;
 
+  // Zone rendering
   if (currentZone === "study") return <StudyRoom onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "story") return <StoryMode onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "training") return (
     <TrainingGround 
       onBack={() => setCurrentZone("lobby")} 
-      onCorrect={(id) => addScore(10)}
+      onCorrect={() => addScore(10)}
       onWrong={(word) => addMistake(word)}
     />
   );
@@ -56,11 +57,16 @@ export default function Home() {
   const hasEnoughMistakes = mistakes.length >= 10;
 
   return (
-    <div className="min-h-screen font-body overflow-hidden relative flex flex-col animated-bg">
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 relative z-10 flex flex-col">
+    <div className="relative min-h-screen bg-slate-50 overflow-hidden font-body flex flex-col">
+      {/* Decorative Breathing Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-300/30 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '4s' }}></div>
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-300/30 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '5s' }}></div>
+      <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-300/20 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '6s' }}></div>
+
+      <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-6 py-12 flex flex-col">
         <header className="flex items-center justify-between mb-16">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary rounded-[20px] flex items-center justify-center shadow-[0_8px_16px_rgba(59,130,246,0.3)]">
+            <div className="w-14 h-14 bg-primary rounded-[20px] flex items-center justify-center shadow-[0_8px_16px_rgba(59,130,246,0.3)] transition-all duration-300 hover:rotate-6">
                <Zap className="text-white w-8 h-8 fill-white" />
             </div>
             <div>
@@ -69,7 +75,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-white pl-3 pr-8 py-3 rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-white">
+          <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm pl-3 pr-8 py-3 rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-white">
             <div className="bg-amber-400 w-10 h-10 rounded-2xl flex items-center justify-center">
               <Coins className="text-white w-6 h-6 fill-white/20" />
             </div>
@@ -81,7 +87,7 @@ export default function Home() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
             <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-6">
               <BookOpen className="w-6 h-6 text-sky-500" />
             </div>
@@ -94,7 +100,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Sword className="w-6 h-6 text-indigo-500" />
             </div>
@@ -107,7 +113,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
               <Zap className="w-6 h-6 text-emerald-500" />
             </div>
@@ -120,7 +126,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
               <BookText className="w-6 h-6 text-amber-500" />
             </div>
@@ -147,7 +153,7 @@ export default function Home() {
               <BrainCircuit className={cn("w-8 h-8", hasEnoughMistakes ? "text-white" : "text-slate-400")} />
               PRACTICE MISTAKES
               {hasEnoughMistakes && (
-                <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[10px] px-2.5 py-1 rounded-full border-2 border-white shadow-lg font-bold tracking-tighter uppercase">
+                <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[10px] px-2.5 py-1 rounded-full border-2 border-white shadow-lg font-bold tracking-tighter uppercase animate-bounce">
                   READY!
                 </span>
               )}
@@ -156,16 +162,16 @@ export default function Home() {
           <p className="mt-6 text-slate-400 text-sm font-medium flex items-center gap-2">
             {!hasEnoughMistakes && <Lock className="w-3.5 h-3.5" />}
             {hasEnoughMistakes && <Info className="w-3.5 h-3.5" />}
-            {hasEnoughMistakes ? "Practice your weakest words!" : `Collect at least ${10 - mistakes.length} more mistakes to unlock`}
+            {hasEnoughMistakes ? "Practice your weakest words!" : `Collect at least ${10 - mistakes.length} mistakes to unlock`}
           </p>
         </div>
+
+        <footer className="mt-auto py-12 text-center text-slate-300 text-xs font-medium">
+          <p>© 2024 LexiLeap. Your English Journey Starts Here.</p>
+        </footer>
       </main>
 
       <Onboarding isOpen={isFirstTime} onClose={completeOnboarding} />
-
-      <footer className="py-12 text-center text-slate-300 text-xs font-medium">
-        <p>© 2024 LexiLeap. Your English Journey Starts Here.</p>
-      </footer>
     </div>
   );
 }
