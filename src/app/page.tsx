@@ -5,13 +5,14 @@ import { useGameState } from "@/hooks/use-game-state";
 import { StudyRoom } from "@/components/game/StudyRoom";
 import { TrainingGround } from "@/components/game/TrainingGround";
 import { ArcadeMode } from "@/components/game/ArcadeMode";
+import { StoryMode } from "@/components/game/StoryMode";
 import { Onboarding } from "@/components/game/Onboarding";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BookOpen, Sword, Zap, BrainCircuit, Coins, Lock, Info } from "lucide-react";
+import { BookOpen, Sword, Zap, BrainCircuit, Coins, Lock, Info, BookText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type GameZone = "lobby" | "study" | "training" | "arcade" | "mistakes";
+type GameZone = "lobby" | "study" | "training" | "arcade" | "mistakes" | "story";
 
 export default function Home() {
   const [currentZone, setCurrentZone] = useState<GameZone>("lobby");
@@ -29,6 +30,7 @@ export default function Home() {
   if (!loaded) return null;
 
   if (currentZone === "study") return <StudyRoom onBack={() => setCurrentZone("lobby")} />;
+  if (currentZone === "story") return <StoryMode onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "training") return (
     <TrainingGround 
       onBack={() => setCurrentZone("lobby")} 
@@ -55,13 +57,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] font-body overflow-hidden relative flex flex-col">
-      {/* Decorative Blobs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/50 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-50/30 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none"></div>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-12 relative z-10 flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-20">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 relative z-10 flex flex-col">
+        <header className="flex items-center justify-between mb-16">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-primary rounded-[20px] flex items-center justify-center shadow-[0_8px_16px_rgba(59,130,246,0.3)]">
                <Zap className="text-white w-8 h-8 fill-white" />
@@ -83,20 +83,16 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Zone Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
             <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-6">
               <BookOpen className="w-6 h-6 text-sky-500" />
             </div>
             <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Study Room</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-10 flex-1">
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Flip cards and build your basic vocabulary. Essential for beginners.
             </p>
-            <Button 
-              onClick={() => setCurrentZone("study")}
-              className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl"
-            >
+            <Button onClick={() => setCurrentZone("study")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
               ENTER ROOM
             </Button>
           </Card>
@@ -106,13 +102,10 @@ export default function Home() {
               <Sword className="w-6 h-6 text-indigo-500" />
             </div>
             <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Training Ground</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-10 flex-1">
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Interactive quizzes across 3 difficulty tiers to solidify your learning.
             </p>
-            <Button 
-              onClick={() => setCurrentZone("training")}
-              className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl"
-            >
+            <Button onClick={() => setCurrentZone("training")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
               START DRILLS
             </Button>
           </Card>
@@ -122,19 +115,28 @@ export default function Home() {
               <Zap className="w-6 h-6 text-emerald-500" />
             </div>
             <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Arcade Mode</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-10 flex-1">
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
               Test your reflexes and speed. Pop word bubbles and maintain your combo!
             </p>
-            <Button 
-              onClick={() => setCurrentZone("arcade")}
-              className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl"
-            >
+            <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
               PLAY GAME
+            </Button>
+          </Card>
+
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
+            <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
+              <BookText className="w-6 h-6 text-amber-500" />
+            </div>
+            <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Story Mode</h3>
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
+              Read an immersive story, explore vocabulary, and take a final exam.
+            </p>
+            <Button onClick={() => setCurrentZone("story")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl">
+              OPEN STORY
             </Button>
           </Card>
         </div>
 
-        {/* Mistakes Section */}
         <div className="flex flex-col items-center">
           <div className="relative w-full max-w-2xl">
             <button 
