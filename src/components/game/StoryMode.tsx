@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -77,25 +78,25 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 p-6 pb-20 transition-all duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-6 pb-20 transition-all duration-500">
       <div className="max-w-5xl mx-auto">
         <header className="flex items-center gap-6 mb-10">
-          <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-white/50 transition-all duration-300 hover:scale-110 active:scale-95">
-            <ArrowLeft className="w-8 h-8 text-slate-400" />
+          <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-white/50 transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm">
+            <ArrowLeft className="w-8 h-8 text-slate-600" />
           </Button>
           <div>
-            <h1 className="text-3xl font-headline font-bold text-slate-800">{storyData.title}</h1>
-            <p className="text-slate-400 text-sm font-medium">Immersive Reading & Comprehension</p>
+            <h1 className="text-3xl font-headline font-bold text-slate-800 drop-shadow-sm">{storyData.title}</h1>
+            <p className="text-slate-600 text-sm font-medium">Immersive Reading & Comprehension</p>
           </div>
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-white/50 backdrop-blur-sm p-1.5 rounded-2xl w-full max-w-md h-auto gap-1 border border-white/50 shadow-sm">
+          <TabsList className="bg-white/70 backdrop-blur-sm p-1.5 rounded-2xl w-full max-w-md h-auto gap-1 border-none shadow-lg">
             <TabsTrigger 
               value="read" 
               className={cn(
                 "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+                activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
               )}
             >
               <BookOpen className="w-4 h-4 mr-2" /> Read
@@ -104,7 +105,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
               value="exam" 
               className={cn(
                 "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+                activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
               )}
             >
               <GraduationCap className="w-4 h-4 mr-2" /> Exam
@@ -113,7 +114,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
               value="self" 
               className={cn(
                 "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white/50 text-gray-600 hover:bg-white hover:text-blue-500"
+                activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
               )}
             >
               <HelpCircle className="w-4 h-4 mr-2" /> Review
@@ -121,7 +122,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           </TabsList>
 
           <TabsContent value="read" className="space-y-8 outline-none">
-            <Card className="p-10 rounded-[40px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md">
+            <Card className="p-10 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md">
               <div className="max-w-3xl mx-auto space-y-8">
                 {storyData.paragraphs.map((para, i) => (
                   <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
@@ -131,7 +132,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
               </div>
             </Card>
             <div className="flex justify-center">
-               <Button onClick={() => setActiveTab("exam")} className="chunky-button chunky-primary px-12 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+               <Button onClick={() => setActiveTab("exam")} className="chunky-button chunky-primary px-12 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-lg">
                  START THE EXAM <ChevronRight className="ml-2" />
                </Button>
             </div>
@@ -139,7 +140,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
 
           <TabsContent value="exam" className="outline-none">
             {showExamResults ? (
-              <Card className="p-12 text-center rounded-[40px] shadow-xl border border-white/50 bg-white/80 backdrop-blur-md">
+              <Card className="p-12 text-center rounded-[40px] shadow-2xl border-none bg-white/95 backdrop-blur-md">
                  <CheckCircle className="w-24 h-24 text-emerald-500 mx-auto mb-6" />
                  <h2 className="text-4xl font-headline font-bold text-slate-800 mb-2">Exam Complete!</h2>
                  <p className="text-slate-400 mb-10">You scored {calculateExamScore()} out of {storyData.multiple_choice.length}</p>
@@ -150,7 +151,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
             ) : (
               <div className="space-y-6">
                 {storyData.multiple_choice.map((q, i) => (
-                  <Card key={i} className="p-8 rounded-[32px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md">
+                  <Card key={i} className="p-8 rounded-[32px] border-none shadow-2xl bg-white/95 backdrop-blur-md">
                     <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-4">
                       <span className="text-primary/30">Q{i+1}.</span>
                       {q.question}
@@ -161,10 +162,10 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                           key={optIdx}
                           onClick={() => setExamAnswers(prev => ({ ...prev, [i]: optIdx }))}
                           className={cn(
-                            "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer",
+                            "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer shadow-sm",
                             examAnswers[i] === optIdx 
                               ? "bg-primary text-white border-primary shadow-lg" 
-                              : "bg-white/50 text-slate-600 border-slate-100 hover:border-primary/20"
+                              : "bg-slate-50 text-slate-600 border-slate-100 hover:border-primary/20"
                           )}
                         >
                           {opt}
@@ -177,7 +178,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                   <Button 
                     disabled={Object.keys(examAnswers).length < storyData.multiple_choice.length}
                     onClick={() => setShowExamResults(true)} 
-                    className="chunky-button chunky-primary px-16 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                    className="chunky-button chunky-primary px-16 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-lg"
                   >
                     SUBMIT EXAM
                   </Button>
@@ -189,12 +190,12 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           <TabsContent value="self" className="outline-none">
             <div className="max-w-3xl mx-auto space-y-12">
                <div className="text-center space-y-4">
-                 <h2 className="text-4xl font-headline font-bold text-slate-800">Open Assessment</h2>
-                 <p className="text-slate-400">Recall the details from the story. Test your depth.</p>
+                 <h2 className="text-4xl font-headline font-bold text-slate-800 drop-shadow-sm">Open Assessment</h2>
+                 <p className="text-slate-600">Recall the details from the story. Test your depth.</p>
                </div>
 
-               <Card className="p-12 rounded-[48px] border border-white/50 shadow-xl bg-white/80 backdrop-blur-md text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
-                  <div className="absolute top-0 inset-x-0 h-3 bg-primary/10" />
+               <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
+                  <div className="absolute top-0 inset-x-0 h-3 bg-primary/20" />
                   
                   <div className="space-y-10">
                     <div className="space-y-4">
@@ -210,18 +211,18 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                           value={userResponse}
                           onChange={(e) => setUserResponse(e.target.value)}
                           placeholder="Draft your answer here to practice..."
-                          className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner"
+                          className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner bg-slate-50"
                         />
                         <Button 
                           onClick={() => setSelfRevealed(true)}
-                          className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+                          className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-md"
                         >
                           REVEAL ANSWER
                         </Button>
                       </div>
                     ) : (
                       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="p-8 bg-emerald-50/50 rounded-[32px] border-2 border-emerald-100">
+                        <div className="p-8 bg-emerald-50/70 rounded-[32px] border-2 border-emerald-100 shadow-sm">
                           <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Correct Answer</p>
                           <p className="text-emerald-700 text-xl font-medium leading-relaxed italic">
                             "{storyData.open_ended[currentSelfQuestion].answer}"

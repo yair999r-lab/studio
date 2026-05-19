@@ -18,16 +18,22 @@ type FeedbackModalProps = {
 export function FeedbackModal({ isCorrect, correctAnswer, translation, glossary, isAlmost, onContinue }: FeedbackModalProps) {
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "Enter") onContinue();
+      if (e.key === "Enter") {
+        // Prevent event from bubbling down to the next question's buttons
+        e.preventDefault();
+        e.stopPropagation();
+        onContinue();
+      }
     };
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
+    // Use capture phase to ensure we catch it before other elements
+    window.addEventListener("keydown", handleKeydown, true);
+    return () => window.removeEventListener("keydown", handleKeydown, true);
   }, [onContinue]);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 p-6 animate-in slide-in-from-bottom-full duration-300">
+    <div className="fixed inset-x-0 bottom-0 z-[100] p-6 animate-in slide-in-from-bottom-full duration-300">
       <div className={cn(
-        "max-w-3xl mx-auto rounded-3xl p-8 shadow-2xl border-t-8",
+        "max-w-3xl mx-auto rounded-[32px] p-8 shadow-2xl border-t-8",
         isCorrect ? "bg-emerald-50 border-emerald-500" : "bg-orange-50 border-orange-500"
       )}>
         <div className="flex items-start gap-4 mb-4">
@@ -36,7 +42,7 @@ export function FeedbackModal({ isCorrect, correctAnswer, translation, glossary,
           ) : (
             <XCircle className="w-10 h-10 text-orange-500 shrink-0" />
           )}
-          <div>
+          <div className="flex-1">
             <h2 className={cn("text-2xl font-bold font-headline mb-1", isCorrect ? "text-emerald-700" : "text-orange-700")}>
               {isCorrect ? (isAlmost ? "Almost perfect!" : "Excellent!") : "Keep going!"}
             </h2>
@@ -66,9 +72,13 @@ export function FeedbackModal({ isCorrect, correctAnswer, translation, glossary,
         </div>
         <div className="flex justify-end">
           <Button 
-            onClick={onContinue}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onContinue();
+            }}
             className={cn(
-              "chunky-button min-w-[160px]",
+              "chunky-button min-w-[160px] text-lg py-6",
               isCorrect ? "chunky-success" : "chunky-error"
             )}
           >

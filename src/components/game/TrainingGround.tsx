@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -120,6 +121,11 @@ export function TrainingGround({
       if (q.word) onWrong(q.word);
     }
 
+    // Immediately blur active element to prevent Enter bleed
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     setCurrentFeedback({
       isCorrect,
       isAlmost: almost,
@@ -133,19 +139,22 @@ export function TrainingGround({
   const handleContinue = () => {
     setShowFeedback(false);
     setUserAnswer("");
-    if (currentIndex + 1 >= questions.length) {
-      setPhase("summary");
-    } else {
-      setCurrentIndex(prev => prev + 1);
-    }
+    // Tiny delay to ensure Enter key press is fully consumed by the browser
+    setTimeout(() => {
+      if (currentIndex + 1 >= questions.length) {
+        setPhase("summary");
+      } else {
+        setCurrentIndex(prev => prev + 1);
+      }
+    }, 50);
   };
 
   if (phase === "setup") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center p-6">
-        <div className="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-[40px] p-10 shadow-xl border border-white/50 bouncy-entrance">
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-[40px] p-10 shadow-2xl border-none bouncy-entrance">
           <div className="flex items-center gap-4 mb-10">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl hover:bg-white/50 p-2 transition-all duration-300 hover:scale-110">
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl hover:bg-slate-100/50 p-2 transition-all duration-300 hover:scale-110">
               <ArrowLeft className="w-8 h-8 text-slate-400" />
             </Button>
             <h1 className="text-3xl font-headline font-bold text-slate-800">Training Ground</h1>
@@ -161,7 +170,7 @@ export function TrainingGround({
                     onClick={() => setDifficulty(d)}
                     className={cn(
                       "chunky-button capitalize text-lg py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer",
-                      difficulty === d ? "chunky-primary" : "bg-white/50 text-slate-400 border-slate-200"
+                      difficulty === d ? "chunky-primary" : "bg-slate-50 text-slate-400 border-slate-200"
                     )}
                   >
                     {d}
@@ -176,14 +185,14 @@ export function TrainingGround({
                 <Button 
                   variant={selectedWeek === null ? "default" : "outline"}
                   onClick={() => setSelectedWeek(null)}
-                  className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
                 >All Weeks</Button>
                 {vocabData.weeks.map(w => (
                   <Button 
                     key={w.week_id}
                     variant={selectedWeek === w.week_id ? "default" : "outline"}
                     onClick={() => setSelectedWeek(w.week_id)}
-                    className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95"
+                    className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
                   >Week {w.week_id}</Button>
                 ))}
               </div>
@@ -206,28 +215,28 @@ export function TrainingGround({
     if (!q) return null;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 p-8 flex flex-col items-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="w-full max-w-4xl">
           <header className="flex items-center gap-6 mb-12">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/50 transition-all duration-300 hover:scale-110 active:scale-95"><ArrowLeft className="w-6 h-6"/></Button>
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl bg-white/90 backdrop-blur-sm border-none shadow-md transition-all duration-300 hover:scale-110 active:scale-95"><ArrowLeft className="w-6 h-6"/></Button>
             <div className="flex-1">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-primary font-bold">
+                <span className="text-primary font-bold drop-shadow-sm">
                   {isReviewMode ? "Mistakes Review" : "Training"}: {currentIndex + 1} / {questions.length}
                 </span>
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">
                   {isReviewMode ? "Review" : difficulty} MODE
                 </span>
               </div>
-              <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white/50" />
+              <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white/50 border-none" />
             </div>
           </header>
 
-          <main className="bg-white/80 backdrop-blur-md rounded-[40px] p-12 shadow-xl border border-white/50 min-h-[450px] flex items-center justify-center">
+          <main className="bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none min-h-[450px] flex items-center justify-center">
             {q.type === "choice" && (
               <div className="w-full text-center space-y-12">
                 <div className="space-y-4">
-                  <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Translate this word</span>
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Translate this word</span>
                   <h2 className="text-6xl font-headline font-bold text-slate-800">{q.text}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
@@ -235,7 +244,7 @@ export function TrainingGround({
                     <button
                       key={i}
                       onClick={() => processAnswer(opt.hebrew === q.answer, q)}
-                      className="chunky-button bg-white/50 text-slate-700 border-slate-200 text-2xl py-8 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                      className="chunky-button bg-slate-50 text-slate-700 border-slate-200 text-2xl py-8 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                       dir="rtl"
                     >
                       {opt.hebrew}
@@ -248,7 +257,7 @@ export function TrainingGround({
             {q.type === "sentence_choice" && (
               <div className="w-full text-center space-y-12">
                 <div className="space-y-4">
-                   <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Complete the sentence</span>
+                   <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Complete the sentence</span>
                    <h2 className="text-4xl font-headline font-medium text-slate-800 leading-relaxed px-8">
                      {q.sentence.text_with_blanks}
                    </h2>
@@ -258,7 +267,7 @@ export function TrainingGround({
                     <button
                       key={i}
                       onClick={() => processAnswer(opt.is_correct, q)}
-                      className="chunky-button bg-white/50 text-slate-700 border-slate-200 text-xl py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                      className="chunky-button bg-slate-50 text-slate-700 border-slate-200 text-xl py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                     >
                       {opt.words ? opt.words.join(' / ') : opt.word}
                     </button>
@@ -270,7 +279,7 @@ export function TrainingGround({
             {q.type === "typing" && (
               <div className="w-full text-center space-y-12">
                 <div className="space-y-4">
-                  <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Type the translation</span>
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Type the translation</span>
                   <h2 className="text-6xl font-headline font-bold text-slate-800" dir="rtl">{q.text}</h2>
                 </div>
                 <form 
@@ -288,7 +297,7 @@ export function TrainingGround({
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Type in English..."
-                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-white shadow-sm focus:border-primary transition-all font-bold bg-white/50 backdrop-blur-sm"
+                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 shadow-sm focus:border-primary transition-all font-bold bg-slate-50"
                   />
                   <p className="text-slate-400 font-bold text-sm">PRESS ENTER TO SUBMIT</p>
                 </form>
@@ -308,18 +317,18 @@ export function TrainingGround({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-purple-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-white/80 backdrop-blur-md rounded-[40px] p-12 shadow-xl border border-white/50 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
+      <div className="w-full max-w-xl bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none text-center">
         <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
         <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Mistakes Cleared!" : "Training Complete!"}</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">You&apos;re building an incredible foundation.</p>
         
         <div className="grid grid-cols-2 gap-6 mb-12">
-          <div className="bg-emerald-50/50 p-8 rounded-[32px] border border-emerald-100">
+          <div className="bg-emerald-50 p-8 rounded-[32px] border-none shadow-sm">
             <p className="text-emerald-700 font-bold text-5xl mb-2">{sessionResults.correct}</p>
             <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest">Mastered</p>
           </div>
-          <div className="bg-rose-50/50 p-8 rounded-[32px] border border-rose-100">
+          <div className="bg-rose-50 p-8 rounded-[32px] border-none shadow-sm">
             <p className="text-rose-700 font-bold text-5xl mb-2">{sessionResults.wrong}</p>
             <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Still Tough</p>
           </div>
