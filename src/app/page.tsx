@@ -58,10 +58,22 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-slate-50 overflow-hidden font-body flex flex-col">
-      {/* Decorative Breathing Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-300/30 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '4s' }}></div>
-      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-300/30 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '5s' }}></div>
-      <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-300/20 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDuration: '6s' }}></div>
+      {/* Dynamic Floating & Fading Background Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <style>{`
+          @keyframes floatAndFade {
+            0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+            50% { opacity: 0.5; transform: scale(1.2) translateY(-20px); }
+            100% { opacity: 0; transform: scale(0.8) translateY(30px); }
+          }
+          .blob-1 { animation: floatAndFade 8s ease-in-out infinite; }
+          .blob-2 { animation: floatAndFade 12s ease-in-out infinite; animation-delay: 3s; }
+          .blob-3 { animation: floatAndFade 10s ease-in-out infinite; animation-delay: 6s; }
+        `}</style>
+        <div className="blob-1 absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400 rounded-full blur-[100px]"></div>
+        <div className="blob-2 absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-purple-400 rounded-full blur-[100px]"></div>
+        <div className="blob-3 absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-400 rounded-full blur-[100px]"></div>
+      </div>
 
       <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-6 py-12 flex flex-col">
         <header className="flex items-center justify-between mb-16">
