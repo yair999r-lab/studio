@@ -27,7 +27,7 @@ export function ArcadeMode({
   onScore: (amount: number) => void;
 }) {
   const [gameState, setGameState] = useState<"ready" | "playing" | "gameover">("ready");
-  const [selectedWeeks, setSelectedWeeks] = useState<number[]>([3]); // Default Week 3
+  const [selectedWeeks, setSelectedWeeks] = useState<number[]>([3]);
   const [hearts, setHearts] = useState(5);
   const [score, setScore] = useState(0);
   const [userInput, setUserInput] = useState("");
@@ -42,6 +42,7 @@ export function ArcadeMode({
   const colors = ["bg-sky-500", "bg-indigo-500", "bg-purple-500", "bg-rose-500"];
 
   const initGame = () => {
+    // Implement Fisher-Yates shuffle for the word pool
     const pool = vocabData.weeks
       .filter(w => selectedWeeks.includes(w.week_id))
       .flatMap(w => w.words);
@@ -64,7 +65,9 @@ export function ArcadeMode({
     const word = wordPool[spawnedCount % wordPool.length];
     const x = 10 + Math.random() * 80;
     const color = colors[Math.floor(Math.random() * colors.length)];
-    const duration = Math.max(5, 13 - (level - 1) * 1.5);
+    
+    // Physics Adjustment: Starting at 16s fall time (much slower)
+    const duration = Math.max(6, 16 - (level - 1) * 1.5);
 
     const newBubble: ActiveBubble = {
       id: Math.random().toString(36).substring(2, 9),
@@ -82,10 +85,12 @@ export function ArcadeMode({
 
   useEffect(() => {
     if (gameState === "playing" && spawnedCount < 10) {
-      const timer = setTimeout(spawnOneBubble, 2000);
+      // Physics Adjustment: Slower initial spawn delay (3.5s)
+      const spawnDelay = Math.max(1200, 3500 - (level - 1) * 300);
+      const timer = setTimeout(spawnOneBubble, spawnDelay);
       return () => clearTimeout(timer);
     }
-  }, [gameState, spawnedCount, spawnOneBubble]);
+  }, [gameState, spawnedCount, spawnOneBubble, level]);
 
   useEffect(() => {
     if (clearedCount >= 10 && gameState === "playing") {
@@ -120,8 +125,8 @@ export function ArcadeMode({
     const cleanInput = userInput.trim().toLowerCase();
     if (!cleanInput) return;
 
-    // Check against all variations in the comma-separated hebrew field
     const targetIndex = bubbles.findIndex(b => {
+      // Split by comma for multiple correct answers
       const variations = b.hebrew.split(',').map(v => v.trim().toLowerCase());
       return variations.includes(cleanInput);
     });
