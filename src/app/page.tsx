@@ -57,8 +57,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f8faff] font-body overflow-hidden relative flex flex-col">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/50 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-50/30 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none"></div>
+      {/* Subtle Animated Background Blobs */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full -translate-y-1/2 translate-x-1/2 blur-[120px] pointer-events-none animate-blob"></div>
+      <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-indigo-100/30 rounded-full translate-y-1/2 -translate-x-1/2 blur-[120px] pointer-events-none animate-blob animation-delay-2000"></div>
+      <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-purple-100/20 rounded-full -translate-y-1/2 -translate-x-1/2 blur-[100px] pointer-events-none animate-blob animation-delay-4000"></div>
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12 relative z-10 flex flex-col">
         <header className="flex items-center justify-between mb-16">
@@ -84,7 +86,7 @@ export default function Home() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
             <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-6">
               <BookOpen className="w-6 h-6 text-sky-500" />
             </div>
@@ -97,7 +99,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Sword className="w-6 h-6 text-indigo-500" />
             </div>
@@ -110,7 +112,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
               <Zap className="w-6 h-6 text-emerald-500" />
             </div>
@@ -123,7 +125,7 @@ export default function Home() {
             </Button>
           </Card>
 
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white">
+          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm">
             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
               <BookText className="w-6 h-6 text-amber-500" />
             </div>
