@@ -191,7 +191,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
             <div className="max-w-3xl mx-auto space-y-12">
                <div className="text-center space-y-4">
                  <h2 className="text-4xl font-headline font-bold text-slate-800 drop-shadow-sm">Open Assessment</h2>
-                 <p className="text-slate-600">Recall the details from the story. Test your depth.</p>
+                 <p className="text-slate-600">Recall the details from the story to test your comprehension.</p>
                </div>
 
                <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">

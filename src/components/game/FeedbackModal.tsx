@@ -19,13 +19,11 @@ export function FeedbackModal({ isCorrect, correctAnswer, translation, glossary,
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
-        // Prevent event from bubbling down to the next question's buttons
         e.preventDefault();
         e.stopPropagation();
         onContinue();
       }
     };
-    // Use capture phase to ensure we catch it before other elements
     window.addEventListener("keydown", handleKeydown, true);
     return () => window.removeEventListener("keydown", handleKeydown, true);
   }, [onContinue]);
@@ -44,7 +42,7 @@ export function FeedbackModal({ isCorrect, correctAnswer, translation, glossary,
           )}
           <div className="flex-1">
             <h2 className={cn("text-2xl font-bold font-headline mb-1", isCorrect ? "text-emerald-700" : "text-orange-700")}>
-              {isCorrect ? (isAlmost ? "Almost perfect!" : "Excellent!") : "Keep going!"}
+              {isCorrect ? (isAlmost ? "Almost Perfect!" : "Excellent!") : "Keep Practicing!"}
             </h2>
             {!isCorrect && (
               <p className="text-orange-800 mb-2">

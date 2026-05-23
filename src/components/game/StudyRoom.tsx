@@ -61,8 +61,8 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
               <ArrowLeft className="w-8 h-8 text-slate-600" />
             </Button>
             <div>
-              <h1 className="text-4xl font-headline font-bold text-slate-800">בנק מילים</h1>
-              <p className="text-slate-500 font-medium">Vocabulary Mastery</p>
+              <h1 className="text-4xl font-headline font-bold text-slate-800">Vocabulary Bank</h1>
+              <p className="text-slate-500 font-medium">Master the Dictionary</p>
             </div>
           </div>
 
@@ -77,36 +77,34 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
               />
             </div>
             
-            <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 scrollbar-hide">
               <Button 
                 variant="outline"
                 onClick={() => setIsSortedAZ(!isSortedAZ)}
                 className={cn(
-                  "h-14 rounded-2xl px-6 font-bold shadow-md transition-all flex-1 md:flex-none",
+                  "h-14 rounded-2xl px-6 font-bold shadow-md transition-all flex-shrink-0",
                   isSortedAZ ? "bg-primary text-white border-primary" : "bg-white/80"
                 )}
               >
                 <SortAsc className="w-5 h-5 mr-2" /> A-Z
               </Button>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none">
+              <Button 
+                variant={selectedWeek === null ? "default" : "outline"}
+                onClick={() => setSelectedWeek(null)}
+                className="h-14 rounded-2xl px-6 font-bold shadow-md bg-white/80 flex-shrink-0"
+              >
+                All
+              </Button>
+              {vocabData.weeks.map(w => (
                 <Button 
-                  variant={selectedWeek === null ? "default" : "outline"}
-                  onClick={() => setSelectedWeek(null)}
-                  className="h-14 rounded-2xl px-6 font-bold shadow-md bg-white/80"
+                  key={w.week_id}
+                  variant={selectedWeek === w.week_id ? "default" : "outline"}
+                  onClick={() => setSelectedWeek(w.week_id)}
+                  className="h-14 rounded-2xl px-6 font-bold shadow-md whitespace-nowrap bg-white/80 flex-shrink-0"
                 >
-                  הכל
+                  Week {w.week_id}
                 </Button>
-                {vocabData.weeks.map(w => (
-                  <Button 
-                    key={w.week_id}
-                    variant={selectedWeek === w.week_id ? "default" : "outline"}
-                    onClick={() => setSelectedWeek(w.week_id)}
-                    className="h-14 rounded-2xl px-6 font-bold shadow-md whitespace-nowrap bg-white/80"
-                  >
-                    שבוע {w.week_id}
-                  </Button>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         </header>
@@ -135,7 +133,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
                 <Card className="card-3d-back flex flex-col items-center justify-center p-8 rounded-[40px] border-none shadow-2xl bg-primary text-white">
                   <h3 className="text-5xl font-headline font-bold mb-4" dir="rtl">{word.hebrew}</h3>
                   <p className="text-white/70 text-sm font-medium uppercase tracking-widest">
-                    Hebrew Mastery
+                    Hebrew Meaning
                   </p>
                 </Card>
               </div>
