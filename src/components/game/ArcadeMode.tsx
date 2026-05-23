@@ -32,7 +32,7 @@ export function ArcadeMode({
   const [beads, setBeads] = useState<Bead[]>([]);
   const [isPenalty, setIsPenalty] = useState(false);
   const [flashRed, setFlashRed] = useState(false);
-  const [speed, setSpeed] = useState(0.0005); // Progress per frame
+  const [speed, setSpeed] = useState(0.0006); // Progress per frame
   
   const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
@@ -90,7 +90,7 @@ export function ArcadeMode({
 
         // 2. Check for loss condition (Leader bead hits exit)
         if (updated.length > 0 && updated[0].progress >= 1) {
-          const removed = updated.shift();
+          updated.shift();
           setLives(l => {
             const next = l - 1;
             if (next <= 0) setGameState("gameover");
@@ -100,10 +100,9 @@ export function ArcadeMode({
           setTimeout(() => setFlashRed(false), 300);
         }
 
-        // 3. Spawning logic: Distance-based (Zuma Chain)
-        // If the chain is empty, or the last bead has moved a bit (gap), spawn new one
+        // 3. Spawning logic: Tightly packed body
         const lastBeadInChain = updated[updated.length - 1];
-        const spawnThreshold = 0.12; // Gap size before next bead spawns
+        const spawnThreshold = 0.065; // Smaller value for tightly packed beads
 
         if (!lastBeadInChain || lastBeadInChain.progress > spawnThreshold) {
           const newBead = createBead();
@@ -239,41 +238,52 @@ export function ArcadeMode({
         </div>
       </div>
 
-      {/* The Zuma Arena */}
+      {/* The Word Defense Arena */}
       <div className="absolute inset-0 z-10">
-        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice" className="opacity-100">
-          {/* Solid Track Path */}
+        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice">
+          {/* Main Solid Track Path */}
           <path 
             ref={pathRef}
             id="gamePath"
             d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
             fill="none" 
-            stroke="#1e293b" 
+            stroke="#27272a" 
+            strokeWidth="90" 
+            strokeLinecap="round"
+          />
+          {/* Inner Decorative Track Lining */}
+          <path 
+            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            fill="none" 
+            stroke="#3f3f46" 
             strokeWidth="80" 
             strokeLinecap="round"
           />
-          {/* Inner Decorative Stroke */}
           <path 
             d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
             fill="none" 
             stroke="rgba(255, 255, 255, 0.05)" 
-            strokeWidth="70" 
+            strokeWidth="2" 
+            strokeDasharray="10 20"
             strokeLinecap="round"
           />
           
           {/* The Exit Hole */}
-          <circle cx="950" cy="400" r="45" fill="#000" stroke="#ef4444" strokeWidth="4" className="animate-pulse" />
-          <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.3" className="animate-ping" />
+          <g>
+            <circle cx="950" cy="400" r="55" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
+            <circle cx="950" cy="400" r="45" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
+            <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.4" className="animate-ping" />
+          </g>
         </svg>
 
-        {/* Snake Head */}
-        <div className="absolute top-[150px] left-[50px] -translate-x-1/2 -translate-y-1/2 z-40">
-           <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.4)]">
+        {/* Snake Head (Source) */}
+        <div className="absolute top-[150px] left-[50px] -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+           <div className="w-28 h-28 bg-emerald-600 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-2xl">
               <span className="text-6xl select-none">🐍</span>
            </div>
         </div>
 
-        {/* Active Beads */}
+        {/* The Packed Word Chain */}
         {beads.map((bead, index) => {
           const coords = getCoordinates(bead.progress);
           const isLeader = index === 0;
@@ -282,28 +292,23 @@ export function ArcadeMode({
               key={bead.id}
               className={cn(
                 "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 z-20",
-                isLeader ? "z-30 scale-100" : "scale-90 opacity-80"
+                isLeader ? "z-30 scale-100" : "scale-95"
               )}
               style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
             >
               <div className={cn(
-                "w-24 h-24 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.4)] border-4 flex items-center justify-center text-center p-2 transition-all duration-300",
+                "w-24 h-24 rounded-full border-4 flex items-center justify-center text-center p-3 transition-all duration-300 bg-gradient-to-br from-slate-700 to-slate-800 shadow-xl",
                 isLeader 
-                  ? "bg-gradient-to-br from-primary to-indigo-600 border-white scale-110" 
-                  : "bg-gradient-to-br from-slate-700 to-slate-800 border-slate-500"
+                  ? "border-white shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-110" 
+                  : "border-slate-500 opacity-90"
               )}>
                 <span className={cn(
-                  "font-bold leading-tight break-words transition-all duration-300",
-                  isLeader ? "text-white text-base" : "text-slate-400 text-sm"
+                  "font-bold leading-tight break-words transition-all duration-300 text-sm",
+                  isLeader ? "text-white" : "text-slate-300"
                 )}>
                   {bead.word.english}
                 </span>
               </div>
-              {isLeader && (
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-                   <Zap className="w-8 h-8 text-primary fill-primary animate-bounce shadow-primary" />
-                </div>
-              )}
             </div>
           );
         })}
@@ -319,8 +324,8 @@ export function ArcadeMode({
                 disabled={isPenalty}
                 onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
                 className={cn(
-                  "h-20 text-2xl font-bold rounded-[28px] transition-all duration-300 border-none shadow-xl",
-                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-[1.02] active:scale-95 cursor-pointer",
+                  "h-20 text-2xl font-bold rounded-[28px] transition-all duration-300 border-none shadow-2xl",
+                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/20 hover:bg-white/20 hover:scale-[1.02] active:scale-95 cursor-pointer",
                   isPenalty && "opacity-20 grayscale cursor-not-allowed"
                 )}
                 dir="rtl"
@@ -340,7 +345,7 @@ export function ArcadeMode({
       </div>
 
       {/* Danger Zone Glow */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-rose-500/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-80 h-80 bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
     </div>
   );
 }
