@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Heart, Zap, Skull, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Heart, Zap, Skull } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn, shuffleArray } from "@/lib/utils";
@@ -174,7 +174,7 @@ export function ArcadeMode({
             Speed increases as you master more words.
           </p>
           <div className="space-y-4">
-            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               DEFEND NOW
             </Button>
             <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white transition-colors">
@@ -199,7 +199,7 @@ export function ArcadeMode({
             <p className="text-8xl font-bold text-primary tracking-tighter">{score}</p>
           </div>
           <div className="space-y-4">
-            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
               TRY AGAIN
             </Button>
             <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
@@ -222,7 +222,7 @@ export function ArcadeMode({
           <Button 
             variant="ghost" 
             onClick={onBack} 
-            className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl text-white font-bold h-12 border border-white/10"
+            className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl text-white font-bold h-12 border border-white/10 transition-all duration-300 hover:scale-105 active:scale-95"
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
           </Button>
@@ -242,24 +242,24 @@ export function ArcadeMode({
 
       {/* The Zuma Arena */}
       <div className="absolute inset-0 z-10">
-        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice" className="opacity-80">
-          {/* Defined Winding Path */}
+        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice" className="opacity-100">
+          {/* Solid Track Path */}
           <path 
             ref={pathRef}
             id="gamePath"
             d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
             fill="none" 
-            stroke="rgba(255,255,255,0.05)" 
+            stroke="#1e293b" 
             strokeWidth="80" 
             strokeLinecap="round"
           />
-          {/* Inner Glow Path */}
+          {/* Inner Decorative Stroke */}
           <path 
             d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
             fill="none" 
-            stroke="rgba(99, 102, 241, 0.2)" 
-            strokeWidth="2" 
-            strokeDasharray="10 20"
+            stroke="rgba(255, 255, 255, 0.05)" 
+            strokeWidth="70" 
+            strokeLinecap="round"
           />
           
           {/* The Exit Hole */}
@@ -267,10 +267,10 @@ export function ArcadeMode({
           <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.3" className="animate-ping" />
         </svg>
 
-        {/* Snake Head (Static Origin) */}
-        <div className="absolute top-[110px] left-[20px] z-30 transform -rotate-12 group hover:scale-110 transition-transform">
-           <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.5)]">
-              <span className="text-5xl">🐍</span>
+        {/* Snake Head (Sitting at path origin M 50 150) */}
+        <div className="absolute top-[150px] left-[50px] -translate-x-1/2 -translate-y-1/2 z-40">
+           <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-transform hover:scale-110">
+              <span className="text-6xl select-none">🐍</span>
            </div>
         </div>
 
@@ -283,17 +283,28 @@ export function ArcadeMode({
               key={bead.id}
               className={cn(
                 "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 z-20",
-                isFront ? "scale-110" : "scale-100"
+                isFront ? "z-30 scale-100" : "scale-90 opacity-80"
               )}
               style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
             >
               <div className={cn(
-                "px-6 py-3 rounded-full shadow-2xl border-4 flex items-center gap-3 whitespace-nowrap min-w-[120px] justify-center transition-all",
-                isFront ? "bg-white border-primary scale-110 z-40" : "bg-slate-800/90 border-slate-600 text-slate-300 opacity-60"
+                "w-24 h-24 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.4)] border-4 flex items-center justify-center text-center p-2 transition-all duration-300",
+                isFront 
+                  ? "bg-gradient-to-br from-primary to-indigo-600 border-white scale-110" 
+                  : "bg-gradient-to-br from-slate-700 to-slate-800 border-slate-500"
               )}>
-                {isFront && <Zap className="w-4 h-4 text-primary fill-primary animate-pulse" />}
-                <span className="text-xl font-bold tracking-tight">{bead.word.english}</span>
+                <span className={cn(
+                  "font-bold leading-tight break-words transition-all duration-300",
+                  isFront ? "text-white text-base" : "text-slate-400 text-sm"
+                )}>
+                  {bead.word.english}
+                </span>
               </div>
+              {isFront && (
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                   <Zap className="w-8 h-8 text-primary fill-primary animate-bounce shadow-primary" />
+                </div>
+              )}
             </div>
           );
         })}
@@ -310,7 +321,7 @@ export function ArcadeMode({
                 onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
                 className={cn(
                   "h-20 text-2xl font-bold rounded-[28px] transition-all duration-300 border-none shadow-xl",
-                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-[1.02] active:scale-95",
+                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-[1.02] active:scale-95 cursor-pointer",
                   isPenalty && "opacity-20 grayscale cursor-not-allowed"
                 )}
                 dir="rtl"
