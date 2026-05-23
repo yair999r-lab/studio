@@ -1,18 +1,26 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Trophy } from "lucide-react";
-import { FeedbackModal } from "./FeedbackModal";
-import { isSpellingCorrect } from "@/lib/levenshtein";
+import { ArrowLeft, Trophy, CheckCircle2, XCircle } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
-import { cn } from "@/lib/utils";
+import { cn, shuffleArray } from "@/lib/utils";
 import type { Mistake } from "@/hooks/use-game-state";
 
 type Difficulty = "easy" | "medium" | "hard";
+
+type Question = {
+  type: "choice" | "sentence_choice";
+  level: 1 | 2 | 3;
+  text: string;
+  hint?: string;
+  options: any[];
+  answer: string;
+  wordId?: string;
+  sentenceId?: string;
+};
 
 type TrainingGroundProps = {
   onBack: () => void;
@@ -29,125 +37,158 @@ export function TrainingGround({
 }: TrainingGroundProps) {
   const { filteredVocab, isReady } = useStudyLogic();
   const isReviewMode = !!mistakePool;
+  
   const [phase, setPhase] = useState<"setup" | "active" | "summary">(isReviewMode ? "active" : "setup");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [userAnswer, setUserAnswer] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [currentFeedback, setCurrentFeedback] = useState<{
-    isCorrect: boolean;
-    correctAnswer: string;
-    translation: string;
-    glossary?: Record<string, string>;
-    isAlmost?: boolean;
-  } | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isAnswering, setIsAnswering] = useState(false);
   const [sessionResults, setSessionResults] = useState({ correct: 0, wrong: 0 });
 
+  // Load Review Mode questions if applicable
   useEffect(() => {
     if (isReviewMode && mistakePool && questions.length === 0 && isReady) {
-      startSession(mistakePool);
-    }
-  }, [isReviewMode, mistakePool, questions.length, isReady]);
-
-  const startSession = (customPool?: Mistake[]) => {
-    let poolWords = [];
-    let poolSentences = [];
-
-    if (customPool) {
-      poolWords = customPool;
-    } else {
-      const activeWeeks = selectedWeek === null 
-        ? filteredVocab.weeks 
-        : filteredVocab.weeks.filter(w => w.week_id === selectedWeek);
-      poolWords = activeWeeks.flatMap(w => w.words);
-      poolSentences = activeWeeks.flatMap(w => w.sentences);
-    }
-
-    let generatedQuestions = [];
-    
-    if (customPool) {
-      generatedQuestions = poolWords.map(word => {
-        // Distractors should be pulled from a global list for diversity
-        const distractors = filteredVocab.weeks.flatMap(w => w.words)
+      const generated = mistakePool.map(word => {
+        const allWords = filteredVocab.weeks.flatMap(w => w.words);
+        const distractors = allWords
           .filter(w => w.id !== word.id)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3);
-        const options = [...distractors, word].sort(() => Math.random() - 0.5);
-        return { 
-          type: "choice", 
-          word, 
-          options, 
-          answer: word.hebrew, 
-          text: word.english 
+        const options = shuffleArray([...distractors, word]);
+        return {
+          type: "choice" as const,
+          level: 1 as const,
+          text: word.english,
+          options,
+          answer: word.hebrew,
+          wordId: word.id
         };
       });
-    } else {
-      if (difficulty === "easy") {
-        generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => {
-          const distractors = poolWords.filter(w => w.id !== word.id).sort(() => Math.random() - 0.5).slice(0, 3);
-          const options = [...distractors, word].sort(() => Math.random() - 0.5);
-          return { type: "choice", word, options, answer: word.hebrew, text: word.english };
-        });
-      } else if (difficulty === "medium") {
-        // Sentences filter: if using the time-locked vocab, sentences should ideally reflect the active words
-        generatedQuestions = poolSentences.sort(() => Math.random() - 0.5).slice(0, 10).map(s => ({
-          type: "sentence_choice",
-          sentence: s,
-          options: [...s.answers].sort(() => Math.random() - 0.5),
-          answer: s.answers.find(a => a.is_correct)?.words?.join(' / ') || ""
-        }));
-      } else {
-        generatedQuestions = poolWords.sort(() => Math.random() - 0.5).slice(0, 10).map(word => ({
-          type: "typing",
-          word,
-          text: word.hebrew,
-          answer: word.english
-        }));
-      }
+      setQuestions(generated);
+    }
+  }, [isReviewMode, mistakePool, questions.length, isReady, filteredVocab]);
+
+  const startSession = () => {
+    const activeWeeks = selectedWeek === null 
+      ? filteredVocab.weeks 
+      : filteredVocab.weeks.filter(w => w.week_id === selectedWeek);
+    
+    const poolWords = activeWeeks.flatMap(w => w.words);
+    const poolSentences = activeWeeks.flatMap(w => w.sentences);
+    
+    if (poolWords.length === 0) return;
+
+    const generated: Question[] = [];
+
+    // Level 1: Word Translation (5 Questions)
+    const level1Words = shuffleArray(poolWords).slice(0, 5);
+    level1Words.forEach(word => {
+      const distractors = poolWords
+        .filter(w => w.id !== word.id)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      const options = shuffleArray([...distractors, word]);
+      generated.push({
+        type: "choice",
+        level: 1,
+        text: word.english,
+        options,
+        answer: word.hebrew,
+        wordId: word.id
+      });
+    });
+
+    // Level 2: Sentence Choice - 1 Word (3 Questions)
+    const level2Sentences = poolSentences
+      .filter(s => s.answers.find(a => a.is_correct)?.words.length === 1)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    
+    level2Sentences.forEach(s => {
+      generated.push({
+        type: "sentence_choice",
+        level: 2,
+        text: s.text_with_blanks,
+        hint: s.translation_hebrew,
+        options: shuffleArray(s.answers),
+        answer: s.answers.find(a => a.is_correct)?.words.join(' ') || "",
+        sentenceId: s.id
+      });
+    });
+
+    // Level 3: Sentence Choice - 2 Words (2 Questions)
+    const level3Sentences = poolSentences
+      .filter(s => s.answers.find(a => a.is_correct)?.words.length === 2)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2);
+    
+    level3Sentences.forEach(s => {
+      generated.push({
+        type: "sentence_choice",
+        level: 3,
+        text: s.text_with_blanks,
+        options: shuffleArray(s.answers),
+        answer: s.answers.find(a => a.is_correct)?.words.join(' / ') || "",
+        sentenceId: s.id
+      });
+    });
+
+    // If we don't have enough sentences, fill with more Level 1
+    while (generated.length < 10 && poolWords.length > generated.length) {
+      const remaining = poolWords.filter(w => !generated.find(q => q.wordId === w.id));
+      if (remaining.length === 0) break;
+      const word = remaining[0];
+      const distractors = poolWords
+        .filter(w => w.id !== word.id)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      generated.push({
+        type: "choice",
+        level: 1,
+        text: word.english,
+        options: shuffleArray([...distractors, word]),
+        answer: word.hebrew,
+        wordId: word.id
+      });
     }
 
-    setQuestions(generatedQuestions);
+    setQuestions(shuffleArray(generated));
     setPhase("active");
     setCurrentIndex(0);
     setSessionResults({ correct: 0, wrong: 0 });
   };
 
-  const processAnswer = (isCorrect: boolean, q: any, almost: boolean = false) => {
+  const handleAnswer = (index: number, isCorrect: boolean) => {
+    if (isAnswering) return;
+    
+    setSelectedAnswer(index);
+    setIsAnswering(true);
+
+    const q = questions[currentIndex];
     if (isCorrect) {
       setSessionResults(prev => ({ ...prev, correct: prev.correct + 1 }));
-      onCorrect(q.word?.id || q.sentence?.id);
+      if (q.wordId) onCorrect(q.wordId);
     } else {
       setSessionResults(prev => ({ ...prev, wrong: prev.wrong + 1 }));
-      if (q.word) onWrong(q.word);
+      if (q.wordId) {
+        const fullWord = filteredVocab.weeks.flatMap(w => w.words).find(w => w.id === q.wordId);
+        if (fullWord) onWrong(fullWord);
+      }
     }
 
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-    setCurrentFeedback({
-      isCorrect,
-      isAlmost: almost,
-      correctAnswer: q.answer,
-      translation: q.sentence?.translation_hebrew || q.word?.hebrew || "",
-      glossary: q.sentence?.glossary
-    });
-    setShowFeedback(true);
-  };
-
-  const handleContinue = () => {
-    setShowFeedback(false);
-    setUserAnswer("");
+    // Wait 1.5 seconds then move to next or summary
     setTimeout(() => {
+      setIsAnswering(false);
+      setSelectedAnswer(null);
       if (currentIndex + 1 >= questions.length) {
         setPhase("summary");
       } else {
         setCurrentIndex(prev => prev + 1);
       }
-    }, 50);
+    }, 1500);
   };
 
   if (!isReady) return null;
@@ -155,33 +196,15 @@ export function TrainingGround({
   if (phase === "setup") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
-        <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-[40px] p-10 shadow-2xl border-none bouncy-entrance">
+        <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-[40px] p-10 shadow-2xl border-none">
           <div className="flex items-center gap-4 mb-10">
             <Button variant="ghost" onClick={onBack} className="rounded-2xl hover:bg-slate-100/50 p-2 transition-all duration-300 hover:scale-110">
               <ArrowLeft className="w-8 h-8 text-slate-400" />
             </Button>
-            <h1 className="text-3xl font-headline font-bold text-slate-800">Training Ground</h1>
+            <h1 className="text-3xl font-headline font-bold text-slate-800">Daily Quiz</h1>
           </div>
 
           <div className="space-y-8">
-            <section>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Select Difficulty</p>
-              <div className="grid grid-cols-3 gap-4">
-                {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
-                  <button
-                    key={d}
-                    onClick={() => setDifficulty(d)}
-                    className={cn(
-                      "chunky-button capitalize text-lg py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer",
-                      difficulty === d ? "chunky-primary" : "bg-slate-50 text-slate-400 border-slate-200"
-                    )}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </section>
-
             <section>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Study Set</p>
               <div className="flex flex-wrap gap-3">
@@ -203,10 +226,10 @@ export function TrainingGround({
           </div>
 
           <Button 
-            onClick={() => startSession()}
-            className="w-full chunky-button chunky-primary text-xl py-8 mt-12 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
+            onClick={startSession}
+            className="w-full chunky-button chunky-primary text-xl py-8 mt-12 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-lg"
           >
-            START SESSION
+            START QUIZ
           </Button>
         </div>
       </div>
@@ -225,96 +248,69 @@ export function TrainingGround({
             <div className="flex-1">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-primary font-bold drop-shadow-sm">
-                  {isReviewMode ? "Mistakes Review" : "Training"}: {currentIndex + 1} / {questions.length}
+                  {isReviewMode ? "Mistakes Review" : "Daily Quiz"}: {currentIndex + 1} / {questions.length}
                 </span>
                 <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                  {isReviewMode ? "Review" : difficulty} MODE
+                  Level {q.level}
                 </span>
               </div>
               <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white/50 border-none" />
             </div>
           </header>
 
-          <main className="bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none min-h-[450px] flex items-center justify-center">
-            {q.type === "choice" && (
-              <div className="w-full text-center space-y-12">
-                <div className="space-y-4">
-                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Translate this word</span>
-                  <h2 className="text-6xl font-headline font-bold text-slate-800">{q.text}</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
-                  {q.options.map((opt: any, i: number) => (
+          <main className="bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none min-h-[500px] flex items-center justify-center">
+            <div className="w-full text-center space-y-12">
+              <div className="space-y-4">
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                  {q.type === "choice" ? "Translate this word" : "Complete the sentence"}
+                </span>
+                <h2 className={cn(
+                  "font-headline font-bold text-slate-800 leading-tight transition-all duration-500",
+                  q.type === "choice" ? "text-6xl" : "text-4xl px-8"
+                )}>
+                  {q.text}
+                </h2>
+                {q.hint && (
+                  <p className="text-slate-500 text-xl font-medium" dir="rtl">{q.hint}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
+                {q.options.map((opt: any, i: number) => {
+                  const isCorrect = q.type === "choice" ? opt.hebrew === q.answer : opt.is_correct;
+                  const isSelected = selectedAnswer === i;
+                  
+                  return (
                     <button
                       key={i}
-                      onClick={() => processAnswer(opt.hebrew === q.answer, q)}
-                      className="chunky-button bg-slate-50 text-slate-700 border-slate-200 text-2xl py-8 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                      dir="rtl"
+                      disabled={isAnswering}
+                      onClick={() => handleAnswer(i, isCorrect)}
+                      className={cn(
+                        "chunky-button text-2xl py-8 transition-all duration-300 shadow-md border-2",
+                        !isAnswering && "bg-slate-50 text-slate-700 border-slate-200 hover:scale-105 active:scale-95 cursor-pointer",
+                        isAnswering && isCorrect && "bg-emerald-500 text-white border-emerald-600 scale-105",
+                        isAnswering && isSelected && !isCorrect && "bg-rose-500 text-white border-rose-600 shake",
+                        isAnswering && !isSelected && !isCorrect && "opacity-40 grayscale-[0.5]"
+                      )}
+                      dir={q.type === "choice" ? "rtl" : "ltr"}
                     >
-                      {opt.hebrew}
+                      {q.type === "choice" ? opt.hebrew : opt.words.join(' / ')}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
-
-            {q.type === "sentence_choice" && (
-              <div className="w-full text-center space-y-12">
-                <div className="space-y-4">
-                   <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Complete the sentence</span>
-                   <h2 className="text-4xl font-headline font-medium text-slate-800 leading-relaxed px-8">
-                     {q.sentence.text_with_blanks}
-                   </h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
-                  {q.options.map((opt: any, i: number) => (
-                    <button
-                      key={i}
-                      onClick={() => processAnswer(opt.is_correct, q)}
-                      className="chunky-button bg-slate-50 text-slate-700 border-slate-200 text-xl py-6 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-                    >
-                      {opt.words ? opt.words.join(' / ') : opt.word}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {q.type === "typing" && (
-              <div className="w-full text-center space-y-12">
-                <div className="space-y-4">
-                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Type the translation</span>
-                  <h2 className="text-6xl font-headline font-bold text-slate-800" dir="rtl">{q.text}</h2>
-                </div>
-                <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (userAnswer.trim()) {
-                      const { isCorrect, isAlmost } = isSpellingCorrect(q.word?.accepted_answers || q.answer, userAnswer);
-                      processAnswer(isCorrect, q, isAlmost);
-                    }
-                  }}
-                  className="w-full max-w-md mx-auto space-y-6"
-                >
-                  <Input 
-                    autoFocus
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Type in English..."
-                    className="h-20 text-3xl text-center rounded-[32px] border-4 border-slate-100 shadow-sm focus:border-primary transition-all font-bold bg-slate-50"
-                  />
-                  <p className="text-slate-400 font-bold text-sm">PRESS ENTER TO SUBMIT</p>
-                </form>
-              </div>
-            )}
+            </div>
           </main>
         </div>
 
-        {showFeedback && currentFeedback && (
-          <FeedbackModal 
-            {...currentFeedback}
-            onContinue={handleContinue}
-          />
-        )}
+        <style jsx global>{`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+          }
+          .shake { animation: shake 0.2s ease-in-out infinite; }
+        `}</style>
       </div>
     );
   }
@@ -323,8 +319,8 @@ export function TrainingGround({
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
       <div className="w-full max-w-xl bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none text-center">
         <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
-        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Mistakes Cleared!" : "Training Complete!"}</h1>
-        <p className="text-slate-500 text-lg mb-10 font-medium">You&apos;re building an incredible foundation.</p>
+        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Review Complete!" : "Quiz Complete!"}</h1>
+        <p className="text-slate-500 text-lg mb-10 font-medium">You're making great progress today.</p>
         
         <div className="grid grid-cols-2 gap-6 mb-12">
           <div className="bg-emerald-50 p-8 rounded-[32px] border-none shadow-sm">
@@ -333,15 +329,17 @@ export function TrainingGround({
           </div>
           <div className="bg-rose-50 p-8 rounded-[32px] border-none shadow-sm">
             <p className="text-rose-700 font-bold text-5xl mb-2">{sessionResults.wrong}</p>
-            <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Still Tough</p>
+            <p className="text-rose-600 text-xs font-bold uppercase tracking-widest">Mistakes</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <Button onClick={() => startSession(mistakePool)} className="w-full chunky-button chunky-primary py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-            {isReviewMode ? "REVIEW AGAIN" : "TRAIN AGAIN"}
-          </Button>
-          <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold transition-all duration-300 hover:scale-105 active:scale-95">RETURN TO LOBBY</Button>
+          {!isReviewMode && (
+            <Button onClick={startSession} className="w-full chunky-button chunky-primary py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+              RETRY QUIZ
+            </Button>
+          )}
+          <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold transition-all duration-300 hover:scale-105 active:scale-95">BACK TO STUDY ROOM</Button>
         </div>
       </div>
     </div>
