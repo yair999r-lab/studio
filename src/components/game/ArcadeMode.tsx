@@ -11,12 +11,10 @@ import { cn, shuffleArray } from "@/lib/utils";
 
 type GameState = "ready" | "playing" | "gameover";
 
-interface Bead {
-  id: string;
-  word: any;
-  progress: number; // 0 to 1
-  options: any[];
-}
+const BEAD_DIAMETER = 64; // Matches w-16
+const BASE_SPEED = 0.8;
+const SVG_WIDTH = 1000;
+const SVG_HEIGHT = 600;
 
 export function ArcadeMode({ 
   onBack, 
@@ -29,13 +27,14 @@ export function ArcadeMode({
   const [gameState, setGameState] = useState<GameState>("ready");
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(2);
-  const [beads, setBeads] = useState<Bead[]>([]);
+  const [wordChain, setWordChain] = useState<any[]>([]);
+  const [headDistance, setHeadDistance] = useState(0);
   const [isPenalty, setIsPenalty] = useState(false);
   const [flashRed, setFlashRed] = useState(false);
-  const [speed, setSpeed] = useState(0.0004); // Slower, playable speed
   
-  const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
+  const requestRef = useRef<number | null>(null);
+  const [pathLength, setPathLength] = useState(0);
 
   // Pool management
   const todayPool = useMemo(() => {
@@ -50,96 +49,102 @@ export function ArcadeMode({
     return [...pastWords, ...todayPool];
   }, [todayPool]);
 
-  const createBead = useCallback(() => {
+  const generateOptions = useCallback((target: any) => {
     const currentPool = score >= 10 ? allUnlockedPool : todayPool;
-    if (currentPool.length === 0) return null;
-
-    const target = currentPool[Math.floor(Math.random() * currentPool.length)];
     const distractors = currentPool
       .filter(w => w.id !== target.id)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
-    
-    return {
-      id: Math.random().toString(36).substr(2, 9),
-      word: target,
-      progress: 0,
-      options: shuffleArray([...distractors, target])
-    };
+    return shuffleArray([...distractors, target]);
   }, [allUnlockedPool, todayPool, score]);
 
+  const addWordToChain = useCallback(() => {
+    const currentPool = score >= 10 ? allUnlockedPool : todayPool;
+    if (currentPool.length === 0) return null;
+    const word = currentPool[Math.floor(Math.random() * currentPool.length)];
+    return {
+      instanceId: Math.random().toString(36).substr(2, 9),
+      ...word,
+      options: generateOptions(word)
+    };
+  }, [allUnlockedPool, todayPool, score, generateOptions]);
+
   const startGame = () => {
+    const initialChain = Array.from({ length: 10 }, () => addWordToChain());
+    setWordChain(initialChain);
     setScore(0);
     setLives(2);
-    setSpeed(0.0004); // Reset speed
-    setBeads([]);
+    setHeadDistance(0);
     setGameState("playing");
   };
 
-  // Main Game Loop
+  // Setup path length
   useEffect(() => {
+    if (pathRef.current) {
+      setPathLength(pathRef.current.getTotalLength());
+    }
+  }, [gameState]);
+
+  // Game Loop
+  const animate = useCallback(() => {
     if (gameState !== "playing") return;
 
-    const update = () => {
-      setBeads(prevBeads => {
-        // 1. Update progress for all beads
-        const updated = prevBeads.map(b => ({
-          ...b,
-          progress: b.progress + speed
-        }));
+    setHeadDistance(prev => {
+      const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
+      const nextDistance = prev + BASE_SPEED * speedMultiplier;
 
-        // 2. Check for loss condition: ONLY when the leader hits progress 1.0
-        if (updated.length > 0 && updated[0].progress >= 1) {
-          updated.shift();
-          setLives(l => {
-            const next = l - 1;
-            if (next <= 0) {
-              setGameState("gameover");
-            }
-            return next;
-          });
-          setFlashRed(true);
-          setTimeout(() => setFlashRed(false), 300);
-        }
+      // Fail condition: Lead bead reaches the end
+      if (nextDistance >= pathLength && pathLength > 0) {
+        setLives(l => {
+          const nextLives = l - 1;
+          if (nextLives <= 0) setGameState("gameover");
+          return nextLives;
+        });
+        setFlashRed(true);
+        setTimeout(() => setFlashRed(false), 300);
+        
+        // Remove leader and keep chain moving
+        setWordChain(prevChain => {
+          const newChain = [...prevChain];
+          newChain.shift();
+          newChain.push(addWordToChain());
+          return newChain;
+        });
+        
+        return nextDistance - BEAD_DIAMETER; // Prevent cascade jump
+      }
 
-        // 3. Spawning logic: Tightly packed based on bead diameter
-        // Bead diameter is ~80px, total path length is ~1750px. Threshold = 80/1750 = 0.045
-        const spawnThreshold = 0.05; 
-        const lastBead = updated[updated.length - 1];
+      return nextDistance;
+    });
 
-        if (!lastBead || lastBead.progress > spawnThreshold) {
-          const newBead = createBead();
-          if (newBead) {
-            updated.push(newBead);
-          }
-        }
+    requestRef.current = requestAnimationFrame(animate);
+  }, [gameState, score, pathLength, addWordToChain]);
 
-        return updated;
-      });
-
-      gameLoopRef.current = requestAnimationFrame(update);
-    };
-
-    gameLoopRef.current = requestAnimationFrame(update);
+  useEffect(() => {
+    if (gameState === "playing") {
+      requestRef.current = requestAnimationFrame(animate);
+    }
     return () => {
-      if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [gameState, speed, createBead]);
+  }, [gameState, animate]);
 
-  const handleAnswer = (beadId: string, isCorrect: boolean) => {
-    if (isPenalty || beads.length === 0) return;
-
-    // Only allow answering the Leader bead
-    if (beadId !== beads[0].id) return;
+  const handleAnswer = (isCorrect: boolean) => {
+    if (isPenalty || wordChain.length === 0) return;
 
     if (isCorrect) {
-      setBeads(prev => prev.slice(1));
-      setScore(s => {
-        const next = s + 1;
-        // Moderate speed increase every 5 points
-        if (next % 5 === 0) setSpeed(prev => prev + 0.00005);
-        onScore(1);
+      setWordChain(prev => {
+        const next = [...prev];
+        next.shift(); // Remove leader
+        next.push(addWordToChain()); // Add new tail to keep chain long
         return next;
+      });
+      // Zuma snap-forward: We DON'T decrement headDistance. 
+      // The new index 0 immediately takes the position of the old index 0.
+      setScore(s => {
+        const nextScore = s + 1;
+        onScore(1);
+        return nextScore;
       });
     } else {
       setIsPenalty(true);
@@ -147,11 +152,9 @@ export function ArcadeMode({
     }
   };
 
-  const getCoordinates = (progress: number) => {
-    if (!pathRef.current) return { x: 0, y: 0 };
-    const length = pathRef.current.getTotalLength();
-    const point = pathRef.current.getPointAtLength(length * Math.min(progress, 1));
-    return { x: point.x, y: point.y };
+  const getPoint = (distance: number) => {
+    if (!pathRef.current) return { x: -100, y: -100 };
+    return pathRef.current.getPointAtLength(Math.max(0, distance));
   };
 
   if (!isReady) return null;
@@ -237,67 +240,66 @@ export function ArcadeMode({
 
         {/* SVG Game Board */}
         <svg 
-          viewBox="0 0 1000 600" 
+          viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
           preserveAspectRatio="xMidYMid meet" 
           className="w-full h-full absolute inset-0 z-0"
         >
           {/* Neon Track S-Curve */}
           <path 
             ref={pathRef}
-            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
+            id="snake-path"
+            d="M -50,150 C 300,150 400,350 700,350 C 950,350 950,550 750,550 L 150,550" 
             fill="none" 
-            stroke="#27272a" 
-            strokeWidth="80" 
-            strokeLinecap="round" 
-          />
-          <path 
-            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
-            fill="none" 
-            stroke="#3f3f46" 
+            stroke="#1e293b" 
             strokeWidth="70" 
             strokeLinecap="round" 
           />
           <path 
-            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
+            d="M -50,150 C 300,150 400,350 700,350 C 950,350 950,550 750,550 L 150,550" 
             fill="none" 
-            stroke="rgba(129, 140, 248, 0.2)" 
-            strokeWidth="82" 
+            stroke="#3f3f46" 
+            strokeWidth="60" 
             strokeLinecap="round" 
           />
           
           {/* Exit Hole */}
           <g transform="translate(150, 550)">
-            <circle r="55" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
-            <circle r="45" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
+            <circle r="50" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
+            <circle r="40" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
           </g>
         </svg>
 
-        {/* Beads (React Components synced to SVG) */}
+        {/* Beads (React Components mapped to SVG path) */}
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {beads.map((bead, index) => {
-            const coords = getCoordinates(bead.progress);
+          {wordChain.map((bead, index) => {
+            const distance = headDistance - (index * BEAD_DIAMETER);
+            if (distance < -50 || distance > pathLength + 50) return null;
+            
+            const point = getPoint(distance);
             const isLeader = index === 0;
             
             return (
               <div 
-                key={bead.id}
+                key={bead.instanceId}
                 className={cn(
-                  "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75",
+                  "absolute transition-opacity duration-300",
                   isLeader ? "z-30" : "z-20"
                 )}
                 style={{ 
-                  left: `${(coords.x / 1000) * 100}%`, 
-                  top: `${(coords.y / 600) * 100}%` 
+                  left: point.x, 
+                  top: point.y, 
+                  transform: 'translate(-50%, -50%)',
+                  opacity: distance < 0 ? 0 : 1
                 }}
               >
                 <div className={cn(
-                  "w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center text-center p-2 shadow-2xl transition-all",
+                  "w-16 h-16 rounded-full border-4 flex items-center justify-center text-center p-2 shadow-2xl transition-all",
                   isLeader 
-                    ? "bg-indigo-600 border-white shadow-[0_0_20px_rgba(255,255,255,0.5)] scale-110" 
+                    ? "bg-indigo-600 border-white shadow-[0_0_20px_rgba(255,255,255,0.6)] scale-110" 
                     : "bg-slate-700 border-slate-500 opacity-90"
                 )}>
-                  <span className="font-bold text-white text-[10px] sm:text-xs leading-tight break-words">
-                    {bead.word.english}
+                  <span className="font-bold text-white text-[10px] leading-tight break-words">
+                    {bead.english}
                   </span>
                 </div>
               </div>
@@ -309,13 +311,13 @@ export function ArcadeMode({
       {/* 2. BOTTOM AREA: Controls */}
       <div className="h-[35vh] bg-slate-950/95 border-t border-white/10 p-6 flex flex-col justify-center items-center z-50">
         <div className="max-w-4xl w-full">
-          {beads.length > 0 ? (
+          {wordChain.length > 0 && headDistance > 0 ? (
             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
-              {beads[0].options.map((opt, i) => (
+              {wordChain[0].options.map((opt: any, i: number) => (
                 <Button
                   key={i}
                   disabled={isPenalty}
-                  onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
+                  onClick={() => handleAnswer(opt.id === wordChain[0].id)}
                   className={cn(
                     "h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-3xl transition-all border-none shadow-xl",
                     !isPenalty && "bg-white/5 text-white hover:bg-white/10 hover:scale-[1.02] active:scale-95",
