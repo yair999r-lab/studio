@@ -37,7 +37,7 @@ export function ArcadeMode({
   const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
 
-  // Pool management
+  // Pool management: Phase 1 (0-9) vs Phase 2 (10+)
   const todayPool = useMemo(() => {
     return filteredVocab.weeks.flatMap(w => w.words);
   }, [filteredVocab]);
@@ -88,21 +88,24 @@ export function ArcadeMode({
           progress: b.progress + speed
         }));
 
-        // 2. Check for loss condition (Leader bead hits exit)
+        // 2. Check for loss condition (Leader bead hits the exit hole at progress 1.0)
         if (updated.length > 0 && updated[0].progress >= 1) {
           updated.shift();
           setLives(l => {
             const next = l - 1;
-            if (next <= 0) setGameState("gameover");
+            if (next <= 0) {
+              setGameState("gameover");
+            }
             return next;
           });
           setFlashRed(true);
           setTimeout(() => setFlashRed(false), 300);
         }
 
-        // 3. Spawning logic: Tightly packed body
+        // 3. Spawning logic: Maintain a tightly packed chain
         const lastBeadInChain = updated[updated.length - 1];
-        const spawnThreshold = 0.065; // Smaller value for tightly packed beads
+        // Threshold for spawning the next bead (roughly diameter of a bead in % path length)
+        const spawnThreshold = 0.065; 
 
         if (!lastBeadInChain || lastBeadInChain.progress > spawnThreshold) {
           const newBead = createBead();
@@ -140,7 +143,7 @@ export function ArcadeMode({
       });
     } else {
       setIsPenalty(true);
-      setTimeout(() => setIsPenalty(false), 1000);
+      setTimeout(() => setIsPenalty(false), 1000); // 1s penalty for wrong guess
     }
   };
 
@@ -214,7 +217,7 @@ export function ArcadeMode({
       "fixed inset-0 bg-slate-950 overflow-hidden font-headline transition-colors duration-300",
       flashRed && "bg-rose-950"
     )}>
-      {/* HUD */}
+      {/* HUD: Arcane Styled */}
       <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
         <div className="pointer-events-auto">
           <Button 
@@ -238,6 +241,12 @@ export function ArcadeMode({
         </div>
       </div>
 
+      {/* Decorative Background Orbs (Arcane) */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* The Word Defense Arena */}
       <div className="absolute inset-0 z-10">
         <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice">
@@ -259,13 +268,14 @@ export function ArcadeMode({
             strokeWidth="80" 
             strokeLinecap="round"
           />
+          {/* Neon Glow Outline */}
           <path 
             d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
             fill="none" 
-            stroke="rgba(255, 255, 255, 0.05)" 
-            strokeWidth="2" 
-            strokeDasharray="10 20"
+            stroke="rgba(129, 140, 248, 0.3)" 
+            strokeWidth="92" 
             strokeLinecap="round"
+            className="blur-[2px]"
           />
           
           {/* The Exit Hole */}
@@ -283,7 +293,7 @@ export function ArcadeMode({
            </div>
         </div>
 
-        {/* The Packed Word Chain */}
+        {/* The Packed Word Chain: Uniform Zuma-style beads */}
         {beads.map((bead, index) => {
           const coords = getCoordinates(bead.progress);
           const isLeader = index === 0;
