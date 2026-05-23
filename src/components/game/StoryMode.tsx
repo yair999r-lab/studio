@@ -10,50 +10,49 @@ import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, 
   BookOpen, 
-  CheckCircle, 
   ChevronRight, 
-  HelpCircle, 
   GraduationCap, 
   Trophy,
-  MessageSquareText
+  MessageSquareText,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import vocabData from "@/app/lib/vocabulary.json";
-import { cn, shuffleArray } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-type StoryPhase = "selection" | "read" | "mcq" | "open" | "summary";
+type StoryPhase = "read" | "mcq" | "open" | "summary";
 
 export function StoryMode({ onBack }: { onBack: () => void }) {
-  const [phase, setPhase] = useState<StoryPhase>("selection");
-  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [phase, setPhase] = useState<StoryPhase>("read");
   const [currentMcqIndex, setCurrentMcqIndex] = useState(0);
+  const [currentOpenIndex, setCurrentOpenIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswering, setIsAnswering] = useState(false);
   const [mcqScore, setMcqScore] = useState(0);
   const [openResponses, setOpenResponses] = useState<Record<string, string>>({});
 
-  // 1. Identify Current Active Week and Filter Logic
-  const { currentStories, activeWeekTitle } = useMemo(() => {
+  // 1. Daily Time-Lock Logic to find the current story
+  const selectedStory = useMemo(() => {
     const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
     const currentWeek = vocabData.weeks.find(w => w.week_id === maxWeekId);
+    if (!currentWeek) return null;
+
     const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
     
-    if (!currentWeek) return { currentStories: [], activeWeekTitle: "" };
+    let story;
+    if (today <= 3) {
+      // Sun-Wed: Match today's day
+      story = currentWeek.stories.find(s => s.day === today);
+    } else {
+      // Thu-Sat: Match weekly type
+      story = currentWeek.stories.find(s => s.type === "weekly");
+    }
 
-    // Find stories for today or the weekly story
-    // Sun-Wed (0-3): Daily match
-    // Thu-Sat (4-6): Weekly type
-    const availableStories = currentWeek.stories.filter(s => {
-      if (today <= 3) return s.day === today || s.type === "daily";
-      return s.type === "weekly" || s.day >= 4;
-    });
-
-    return { 
-      currentStories: availableStories, 
-      activeWeekTitle: `Week ${maxWeekId}: ${currentWeek.title}` 
-    };
+    // Fallback to the first available story if logic finds nothing
+    return story || currentWeek.stories[0];
   }, []);
 
-  // 2. Word Map for Highlighting
+  // 2. Vocabulary Mapping for Highlighting
   const vocabMap = useMemo(() => {
     const map = new Map<string, string>();
     vocabData.weeks.forEach(week => {
@@ -65,6 +64,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   }, []);
 
   const highlightText = (text: string) => {
+    if (!text) return "";
     const words = text.split(/(\s+)/);
     return words.map((part, i) => {
       const cleanWord = part.toLowerCase().replace(/[.,!?;:()"]/g, "").trim();
@@ -91,15 +91,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     });
   };
 
-  // Automatically select story if only one exists for today
-  useEffect(() => {
-    if (phase === "selection" && currentStories.length === 1) {
-      setSelectedStory(currentStories[0]);
-      setPhase("read");
-    }
-  }, [phase, currentStories]);
-
-  const handleAnswer = (idx: number, isCorrect: boolean) => {
+  const handleMcqAnswer = (idx: number, isCorrect: boolean) => {
     if (isAnswering) return;
     setSelectedAnswer(idx);
     setIsAnswering(true);
@@ -119,62 +111,35 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     }, 1500);
   };
 
-  const handleOpenResponse = (id: string, text: string) => {
-    setOpenResponses(prev => ({ ...prev, [id]: text }));
+  const handleNextOpen = () => {
+    if (currentOpenIndex + 1 < selectedStory.open_questions.length) {
+      setCurrentOpenIndex(i => i + 1);
+    } else {
+      setPhase("summary");
+    }
   };
 
-  // Phase: Selection
-  if (phase === "selection") {
+  if (!selectedStory) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
-        <div className="max-w-4xl w-full">
-          <header className="flex items-center gap-6 mb-12">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl h-14 w-14 bg-white/80 shadow-md hover:scale-110 active:scale-95 transition-all">
-              <ArrowLeft className="w-8 h-8 text-slate-600" />
-            </Button>
-            <div>
-              <h1 className="text-4xl font-headline font-bold text-slate-800">Story Room</h1>
-              <p className="text-slate-500 font-medium">{activeWeekTitle}</p>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {currentStories.length > 0 ? currentStories.map((story: any) => (
-              <Card 
-                key={story.id} 
-                className="p-8 rounded-[32px] border-none shadow-xl bg-white/95 backdrop-blur-md hover:scale-105 transition-all cursor-pointer group"
-                onClick={() => { setSelectedStory(story); setPhase("read"); }}
-              >
-                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
-                  <BookOpen className="w-7 h-7 text-blue-600 group-hover:text-white" />
-                </div>
-                <h3 className="text-2xl font-headline font-bold text-slate-800 mb-2">{story.title}</h3>
-                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">{story.type} Practice</p>
-              </Card>
-            )) : (
-              <Card className="col-span-full p-12 text-center rounded-[32px] bg-white/50 border-none shadow-inner">
-                <p className="text-slate-500 text-xl font-medium">No stories available for this time chunk yet.</p>
-              </Card>
-            )}
-          </div>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-500">No story available for today.</p>
       </div>
     );
   }
 
-  // Phase: Reading
+  // Phase 1: Reading
   if (phase === "read") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-4xl w-full">
           <header className="flex items-center gap-6 mb-12">
-            <Button variant="ghost" onClick={() => setPhase("selection")} className="rounded-2xl h-12 w-12 bg-white/80 shadow-md hover:scale-110 active:scale-95 transition-all">
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 bg-white/80 shadow-md hover:scale-110 active:scale-95 transition-all">
               <ArrowLeft className="w-6 h-6 text-slate-600" />
             </Button>
             <h1 className="text-3xl font-headline font-bold text-slate-800">{selectedStory.title}</h1>
           </header>
 
-          <Card className="p-12 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md mb-12">
+          <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md mb-12">
             <div className="prose prose-slate max-w-none">
               <p className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight whitespace-pre-wrap">
                 {highlightText(selectedStory.content)}
@@ -187,7 +152,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
               onClick={() => setPhase("mcq")} 
               className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg"
             >
-              START COMPREHENSION <ChevronRight className="ml-2" />
+              START QUESTIONS <ChevronRight className="ml-2" />
             </Button>
           </div>
         </div>
@@ -195,7 +160,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     );
   }
 
-  // Phase: MCQ
+  // Phase 2: MCQ
   if (phase === "mcq") {
     const q = selectedStory.mcq_questions[currentMcqIndex];
     return (
@@ -203,13 +168,13 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
         <div className="max-w-3xl w-full">
           <header className="mb-12">
             <div className="flex justify-between items-end mb-4">
-               <span className="text-blue-600 font-bold">Comprehension: {currentMcqIndex + 1} / {selectedStory.mcq_questions.length}</span>
-               <GraduationCap className="text-blue-300 w-8 h-8" />
+               <span className="text-blue-700 font-bold drop-shadow-sm">Comprehension: {currentMcqIndex + 1} / {selectedStory.mcq_questions.length}</span>
+               <GraduationCap className="text-blue-400 w-8 h-8" />
             </div>
-            <Progress value={((currentMcqIndex + 1) / selectedStory.mcq_questions.length) * 100} className="h-4 bg-white/50 border-none" />
+            <Progress value={((currentMcqIndex + 1) / selectedStory.mcq_questions.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
           </header>
 
-          <Card className="p-12 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center">
+          <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md text-center">
             <h2 className="text-3xl font-headline font-bold text-slate-800 mb-12 leading-tight px-4">
               {q.question}
             </h2>
@@ -222,16 +187,20 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                   <button
                     key={i}
                     disabled={isAnswering}
-                    onClick={() => handleAnswer(i, isCorrect)}
+                    onClick={() => handleMcqAnswer(i, isCorrect)}
                     className={cn(
                       "chunky-button text-xl py-6 px-8 transition-all duration-300 shadow-md border-2",
-                      !isAnswering && "bg-slate-50 text-slate-700 border-slate-100 hover:scale-105 active:scale-95 cursor-pointer",
+                      !isAnswering && "bg-slate-50 text-slate-700 border-slate-200 hover:scale-105 active:scale-95 cursor-pointer",
                       isAnswering && isCorrect && "bg-emerald-500 text-white border-emerald-600 scale-105",
                       isAnswering && isSelected && !isCorrect && "bg-rose-500 text-white border-rose-600 animate-shake",
                       isAnswering && !isSelected && !isCorrect && "opacity-40 grayscale-[0.5]"
                     )}
                   >
-                    {opt}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{opt}</span>
+                      {isAnswering && isCorrect && <CheckCircle2 className="w-6 h-6" />}
+                      {isAnswering && isSelected && !isCorrect && <XCircle className="w-6 h-6" />}
+                    </div>
                   </button>
                 );
               })}
@@ -242,42 +211,45 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     );
   }
 
-  // Phase: Open Questions
+  // Phase 3: Open Questions
   if (phase === "open") {
+    const q = selectedStory.open_questions[currentOpenIndex];
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full">
-          <header className="text-center mb-12">
-            <MessageSquareText className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-headline font-bold text-slate-800">Final Reflections</h1>
-            <p className="text-slate-500 font-medium">Think about the story and type your answers below.</p>
+          <header className="mb-12">
+            <div className="flex justify-between items-end mb-4">
+               <span className="text-indigo-700 font-bold drop-shadow-sm">Reflection: {currentOpenIndex + 1} / {selectedStory.open_questions.length}</span>
+               <MessageSquareText className="text-indigo-400 w-8 h-8" />
+            </div>
+            <Progress value={((currentOpenIndex + 1) / selectedStory.open_questions.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
           </header>
 
-          <div className="space-y-8 mb-12">
-            {selectedStory.open_questions.map((q: any, i: number) => (
-              <Card key={q.id} className="p-8 rounded-[32px] border-none shadow-xl bg-white/95 backdrop-blur-md">
-                <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-3">
-                  <span className="text-blue-300">Q{i+1}.</span>
-                  {q.question}
-                </h3>
-                <Textarea 
-                  value={openResponses[q.id] || ""}
-                  onChange={(e) => handleOpenResponse(q.id, e.target.value)}
-                  placeholder="Type your thoughts here..."
-                  className="min-h-[140px] rounded-[24px] p-6 text-lg bg-slate-50 border-slate-100 focus:border-blue-500 transition-all resize-none shadow-inner"
-                />
-              </Card>
-            ))}
-          </div>
+          <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md">
+            <div className="text-center mb-8">
+               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Your Thoughts</span>
+               <h2 className="text-2xl font-headline font-bold text-slate-800 leading-tight">
+                 {q.question}
+               </h2>
+            </div>
 
-          <div className="flex justify-center pb-20">
-            <Button 
-              onClick={() => setPhase("summary")} 
-              className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg"
-            >
-              FINISH STORY <Trophy className="ml-2" />
-            </Button>
-          </div>
+            <Textarea 
+              value={openResponses[q.id] || ""}
+              onChange={(e) => setOpenResponses(prev => ({ ...prev, [q.id]: e.target.value }))}
+              placeholder="Type your answer here..."
+              className="min-h-[200px] rounded-[32px] p-8 text-lg bg-slate-50 border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none shadow-inner"
+            />
+
+            <div className="mt-12 flex justify-center">
+              <Button 
+                onClick={handleNextOpen}
+                disabled={!openResponses[q.id]?.trim()}
+                className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentOpenIndex + 1 < selectedStory.open_questions.length ? "NEXT QUESTION" : "FINISH STORY"}
+              </Button>
+            </div>
+          </Card>
         </div>
       </div>
     );
@@ -286,15 +258,15 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   // Phase: Summary
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-8">
-      <Card className="max-w-xl w-full p-12 rounded-[48px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center">
+      <Card className="max-w-xl w-full p-12 rounded-[48px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md text-center">
         <div className="w-24 h-24 bg-emerald-100 rounded-[32px] flex items-center justify-center mx-auto mb-8 animate-bounce">
           <Trophy className="w-12 h-12 text-emerald-600" />
         </div>
-        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Story Complete!</h1>
+        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Story Completed!</h1>
         <p className="text-slate-500 text-lg mb-10">You've successfully mastered today's reading challenge.</p>
         
-        <div className="bg-blue-50 p-8 rounded-[32px] mb-10">
-          <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-1">Quiz Score</p>
+        <div className="bg-blue-50 p-8 rounded-[32px] mb-10 border border-blue-100">
+          <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-1">Comprehension Score</p>
           <p className="text-5xl font-bold text-blue-700">{mcqScore} / {selectedStory.mcq_questions.length}</p>
         </div>
 
