@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Trophy } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 import { isSpellingCorrect } from "@/lib/levenshtein";
-import vocabData from "@/app/lib/vocabulary.json";
+import { useStudyLogic } from "@/hooks/use-study-logic";
 import { cn } from "@/lib/utils";
 import type { Mistake } from "@/hooks/use-game-state";
 
@@ -27,6 +27,7 @@ export function TrainingGround({
   onWrong,
   mistakePool
 }: TrainingGroundProps) {
+  const { filteredVocab, isReady } = useStudyLogic();
   const isReviewMode = !!mistakePool;
   const [phase, setPhase] = useState<"setup" | "active" | "summary">(isReviewMode ? "active" : "setup");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -46,10 +47,10 @@ export function TrainingGround({
   const [sessionResults, setSessionResults] = useState({ correct: 0, wrong: 0 });
 
   useEffect(() => {
-    if (isReviewMode && mistakePool && questions.length === 0) {
+    if (isReviewMode && mistakePool && questions.length === 0 && isReady) {
       startSession(mistakePool);
     }
-  }, [isReviewMode, mistakePool, questions.length]);
+  }, [isReviewMode, mistakePool, questions.length, isReady]);
 
   const startSession = (customPool?: Mistake[]) => {
     let poolWords = [];
@@ -59,8 +60,8 @@ export function TrainingGround({
       poolWords = customPool;
     } else {
       const activeWeeks = selectedWeek === null 
-        ? vocabData.weeks 
-        : vocabData.weeks.filter(w => w.week_id === selectedWeek);
+        ? filteredVocab.weeks 
+        : filteredVocab.weeks.filter(w => w.week_id === selectedWeek);
       poolWords = activeWeeks.flatMap(w => w.words);
       poolSentences = activeWeeks.flatMap(w => w.sentences);
     }
@@ -69,7 +70,8 @@ export function TrainingGround({
     
     if (customPool) {
       generatedQuestions = poolWords.map(word => {
-        const distractors = vocabData.weeks.flatMap(w => w.words)
+        // Distractors should be pulled from a global list for diversity
+        const distractors = filteredVocab.weeks.flatMap(w => w.words)
           .filter(w => w.id !== word.id)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3);
@@ -90,6 +92,7 @@ export function TrainingGround({
           return { type: "choice", word, options, answer: word.hebrew, text: word.english };
         });
       } else if (difficulty === "medium") {
+        // Sentences filter: if using the time-locked vocab, sentences should ideally reflect the active words
         generatedQuestions = poolSentences.sort(() => Math.random() - 0.5).slice(0, 10).map(s => ({
           type: "sentence_choice",
           sentence: s,
@@ -121,7 +124,6 @@ export function TrainingGround({
       if (q.word) onWrong(q.word);
     }
 
-    // Immediately blur active element to prevent Enter bleed
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
@@ -139,7 +141,6 @@ export function TrainingGround({
   const handleContinue = () => {
     setShowFeedback(false);
     setUserAnswer("");
-    // Tiny delay to ensure Enter key press is fully consumed by the browser
     setTimeout(() => {
       if (currentIndex + 1 >= questions.length) {
         setPhase("summary");
@@ -148,6 +149,8 @@ export function TrainingGround({
       }
     }, 50);
   };
+
+  if (!isReady) return null;
 
   if (phase === "setup") {
     return (
@@ -186,8 +189,8 @@ export function TrainingGround({
                   variant={selectedWeek === null ? "default" : "outline"}
                   onClick={() => setSelectedWeek(null)}
                   className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
-                >All Weeks</Button>
-                {vocabData.weeks.map(w => (
+                >Daily Selection</Button>
+                {filteredVocab.weeks.map(w => (
                   <Button 
                     key={w.week_id}
                     variant={selectedWeek === w.week_id ? "default" : "outline"}

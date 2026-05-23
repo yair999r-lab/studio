@@ -6,22 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Search, SortAsc, LayoutGrid } from "lucide-react";
-import vocabData from "@/app/lib/vocabulary.json";
+import { useStudyLogic } from "@/hooks/use-study-logic";
 import { cn } from "@/lib/utils";
 
 export function StudyRoom({ onBack }: { onBack: () => void }) {
+  const { filteredVocab, isReady } = useStudyLogic();
   const [search, setSearch] = useState("");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [isSortedAZ, setIsSortedAZ] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
 
-  const allWords = useMemo(() => vocabData.weeks.flatMap(w => w.words), []);
+  const allWords = useMemo(() => {
+    return filteredVocab.weeks.flatMap(w => w.words);
+  }, [filteredVocab]);
 
   const filteredAndSortedWords = useMemo(() => {
     let words = allWords.filter(w => {
-      const matchesWeek = selectedWeek === null || vocabData.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
+      // Check if word belongs to selected week (if any week filter is active)
+      const belongsToSelectedWeek = selectedWeek === null || 
+        filteredVocab.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
+      
       const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
-      return matchesWeek && matchesSearch;
+      return belongsToSelectedWeek && matchesSearch;
     });
 
     // Smart Search Priority: Starts with -> Contains
@@ -41,7 +47,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
     });
 
     return sorted;
-  }, [allWords, search, selectedWeek, isSortedAZ]);
+  }, [allWords, search, selectedWeek, isSortedAZ, filteredVocab]);
 
   const toggleFlip = (id: string) => {
     setFlippedCards(prev => {
@@ -51,6 +57,14 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
       return next;
     });
   };
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 pb-20 overflow-x-hidden">
@@ -95,7 +109,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
               >
                 All
               </Button>
-              {vocabData.weeks.map(w => (
+              {filteredVocab.weeks.map(w => (
                 <Button 
                   key={w.week_id}
                   variant={selectedWeek === w.week_id ? "default" : "outline"}
@@ -141,10 +155,10 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
           ))}
         </div>
         
-        {filteredAndSortedWords.length === 0 && (
+        {filteredAndSortedWords.length === 0 && isReady && (
           <div className="text-center py-20 bg-white/50 backdrop-blur rounded-[40px] shadow-inner">
             <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-2xl font-bold text-slate-400">No words found match your search.</p>
+            <p className="text-2xl font-bold text-slate-400">No words found for today's selection.</p>
           </div>
         )}
       </div>
