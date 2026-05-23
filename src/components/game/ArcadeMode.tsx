@@ -32,7 +32,7 @@ export function ArcadeMode({
   const [beads, setBeads] = useState<Bead[]>([]);
   const [isPenalty, setIsPenalty] = useState(false);
   const [flashRed, setFlashRed] = useState(false);
-  const [speed, setSpeed] = useState(0.0008);
+  const [speed, setSpeed] = useState(0.0004); // Slower, playable speed
   
   const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
@@ -71,7 +71,7 @@ export function ArcadeMode({
   const startGame = () => {
     setScore(0);
     setLives(2);
-    setSpeed(0.0008);
+    setSpeed(0.0004); // Reset speed
     setBeads([]);
     setGameState("playing");
   };
@@ -103,8 +103,8 @@ export function ArcadeMode({
         }
 
         // 3. Spawning logic: Tightly packed based on bead diameter
-        // Bead diameter is ~80px, total path length is ~1200px. Threshold = 80/1200 = 0.066
-        const spawnThreshold = 0.07; 
+        // Bead diameter is ~80px, total path length is ~1750px. Threshold = 80/1750 = 0.045
+        const spawnThreshold = 0.05; 
         const lastBead = updated[updated.length - 1];
 
         if (!lastBead || lastBead.progress > spawnThreshold) {
@@ -136,7 +136,8 @@ export function ArcadeMode({
       setBeads(prev => prev.slice(1));
       setScore(s => {
         const next = s + 1;
-        if (next % 5 === 0) setSpeed(prev => prev + 0.0001);
+        // Moderate speed increase every 5 points
+        if (next % 5 === 0) setSpeed(prev => prev + 0.00005);
         onScore(1);
         return next;
       });
@@ -240,24 +241,24 @@ export function ArcadeMode({
           preserveAspectRatio="xMidYMid meet" 
           className="w-full h-full absolute inset-0 z-0"
         >
-          {/* Neon Track */}
+          {/* Neon Track S-Curve */}
           <path 
             ref={pathRef}
-            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
+            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
             fill="none" 
             stroke="#27272a" 
             strokeWidth="80" 
             strokeLinecap="round" 
           />
           <path 
-            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
+            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
             fill="none" 
             stroke="#3f3f46" 
             strokeWidth="70" 
             strokeLinecap="round" 
           />
           <path 
-            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
+            d="M -50,100 C 400,100 400,350 800,350 C 1050,350 1050,550 800,550 L 150,550" 
             fill="none" 
             stroke="rgba(129, 140, 248, 0.2)" 
             strokeWidth="82" 
@@ -265,15 +266,9 @@ export function ArcadeMode({
           />
           
           {/* Exit Hole */}
-          <g transform="translate(200, 500)">
+          <g transform="translate(150, 550)">
             <circle r="55" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
             <circle r="45" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
-          </g>
-
-          {/* Snake Head */}
-          <g transform="translate(100, 100)">
-            <circle r="60" fill="#10b981" className="opacity-20 blur-xl" />
-            <text x="-35" y="30" fontSize="80" className="select-none">🐍</text>
           </g>
         </svg>
 
@@ -283,8 +278,6 @@ export function ArcadeMode({
             const coords = getCoordinates(bead.progress);
             const isLeader = index === 0;
             
-            // Adjust coordinates based on the SVG-to-screen scale manually isn't needed if we use absolute container that matches svg aspect ratio
-            // But better to use SVG foreignObject or just scaling. Let's use simple scaling for 1000x600 viewBox
             return (
               <div 
                 key={bead.id}
