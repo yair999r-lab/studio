@@ -36,8 +36,6 @@ export function ArcadeMode({
   
   const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
-  const lastSpawnTime = useRef<number>(0);
-  const spawnInterval = 3000; // MS between spawns
 
   // Pool management
   const todayPool = useMemo(() => {
@@ -76,7 +74,6 @@ export function ArcadeMode({
     setSpeed(0.0008);
     setBeads([]);
     setGameState("playing");
-    lastSpawnTime.current = Date.now();
   };
 
   // Main Game Loop
@@ -85,34 +82,32 @@ export function ArcadeMode({
 
     const update = () => {
       setBeads(prevBeads => {
-        let newLives = lives;
+        // 1. Update progress for all beads
         const updated = prevBeads.map(b => ({
           ...b,
           progress: b.progress + speed
-        })).filter(b => {
-          if (b.progress >= 1) {
-            // Bead reached the end
-            setLives(l => {
-              const next = l - 1;
-              if (next <= 0) setGameState("gameover");
-              return next;
-            });
-            setFlashRed(true);
-            setTimeout(() => setFlashRed(false), 300);
-            return false;
-          }
-          return true;
-        });
+        }));
 
-        // Spawning logic
-        const now = Date.now();
-        const timeSinceLast = now - lastSpawnTime.current;
-        const adjustedInterval = Math.max(1500, spawnInterval - (score * 50));
+        // 2. Check for loss condition (Leader bead hits exit)
+        if (updated.length > 0 && updated[0].progress >= 1) {
+          const removed = updated.shift();
+          setLives(l => {
+            const next = l - 1;
+            if (next <= 0) setGameState("gameover");
+            return next;
+          });
+          setFlashRed(true);
+          setTimeout(() => setFlashRed(false), 300);
+        }
 
-        if (timeSinceLast > adjustedInterval || updated.length === 0) {
+        // 3. Spawning logic: Distance-based (Zuma Chain)
+        // If the chain is empty, or the last bead has moved a bit (gap), spawn new one
+        const lastBeadInChain = updated[updated.length - 1];
+        const spawnThreshold = 0.12; // Gap size before next bead spawns
+
+        if (!lastBeadInChain || lastBeadInChain.progress > spawnThreshold) {
           const newBead = createBead();
           if (newBead) {
-            lastSpawnTime.current = now;
             updated.push(newBead);
           }
         }
@@ -127,15 +122,19 @@ export function ArcadeMode({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, speed, score, createBead, lives]);
+  }, [gameState, speed, score, createBead]);
 
   const handleAnswer = (beadId: string, isCorrect: boolean) => {
-    if (isPenalty) return;
+    if (isPenalty || beads.length === 0) return;
+
+    // Only allow answering the "Leader" bead (first in array)
+    if (beadId !== beads[0].id) return;
 
     if (isCorrect) {
-      setBeads(prev => prev.filter(b => b.id !== beadId));
+      setBeads(prev => prev.slice(1)); // Remove the leader
       setScore(s => {
         const next = s + 1;
+        // Increase speed slightly every 5 points
         if (next % 5 === 0) setSpeed(prev => prev + 0.0001);
         onScore(1);
         return next;
@@ -161,7 +160,7 @@ export function ArcadeMode({
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline overflow-hidden relative">
          <div className="absolute inset-0 opacity-20">
             <svg width="100%" height="100%" viewBox="0 0 1000 1000">
-               <path d="M -100 200 Q 300 100 500 400 T 1100 500" fill="none" stroke="white" strokeWidth="2" strokeDasharray="10 10" />
+               <path d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" fill="none" stroke="white" strokeWidth="2" strokeDasharray="10 10" />
             </svg>
          </div>
         <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[40px] p-12 text-center relative z-10 shadow-2xl">
@@ -170,12 +169,12 @@ export function ArcadeMode({
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">Word Chain</h1>
           <p className="text-slate-300 mb-12 text-lg leading-relaxed">
-            Stop the words before they reach the hole!<br/>
+            Stop the chain before it reaches the end!<br/>
             Speed increases as you master more words.
           </p>
           <div className="space-y-4">
             <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-              DEFEND NOW
+              START DEFENSE
             </Button>
             <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white transition-colors">
               Return to Lobby
@@ -267,40 +266,40 @@ export function ArcadeMode({
           <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.3" className="animate-ping" />
         </svg>
 
-        {/* Snake Head (Sitting at path origin M 50 150) */}
+        {/* Snake Head */}
         <div className="absolute top-[150px] left-[50px] -translate-x-1/2 -translate-y-1/2 z-40">
-           <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-transform hover:scale-110">
+           <div className="w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.4)]">
               <span className="text-6xl select-none">🐍</span>
            </div>
         </div>
 
         {/* Active Beads */}
-        {beads.map((bead) => {
+        {beads.map((bead, index) => {
           const coords = getCoordinates(bead.progress);
-          const isFront = bead.id === beads[0]?.id;
+          const isLeader = index === 0;
           return (
             <div 
               key={bead.id}
               className={cn(
                 "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 z-20",
-                isFront ? "z-30 scale-100" : "scale-90 opacity-80"
+                isLeader ? "z-30 scale-100" : "scale-90 opacity-80"
               )}
               style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
             >
               <div className={cn(
                 "w-24 h-24 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.4)] border-4 flex items-center justify-center text-center p-2 transition-all duration-300",
-                isFront 
+                isLeader 
                   ? "bg-gradient-to-br from-primary to-indigo-600 border-white scale-110" 
                   : "bg-gradient-to-br from-slate-700 to-slate-800 border-slate-500"
               )}>
                 <span className={cn(
                   "font-bold leading-tight break-words transition-all duration-300",
-                  isFront ? "text-white text-base" : "text-slate-400 text-sm"
+                  isLeader ? "text-white text-base" : "text-slate-400 text-sm"
                 )}>
                   {bead.word.english}
                 </span>
               </div>
-              {isFront && (
+              {isLeader && (
                 <div className="absolute -top-12 left-1/2 -translate-x-1/2">
                    <Zap className="w-8 h-8 text-primary fill-primary animate-bounce shadow-primary" />
                 </div>
@@ -313,7 +312,7 @@ export function ArcadeMode({
       {/* Answer Console */}
       <div className="absolute bottom-12 inset-x-0 z-50 px-8 max-w-4xl mx-auto">
         {beads.length > 0 && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-10 duration-500">
             {beads[0].options.map((opt, i) => (
               <Button
                 key={i}
