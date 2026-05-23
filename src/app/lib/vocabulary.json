@@ -1,181 +1,59 @@
 {
   "weeks": [
     {
-      "week_id": 3,
-      "title": "Week 3",
+      "week_id": 1,
+      "title": "Week 1",
       "words": [
-        { "id": "w3_1", "english": "deep", "hebrew": "עמוק", "accepted_answers": ["עמוק", "עמוקה"], "category": "adjectives" },
-        { "id": "w3_2", "english": "auction", "hebrew": "מכירה פומבית", "accepted_answers": ["מכירה פומבית", "מכירה"], "category": "nouns" },
-        { "id": "w3_3", "english": "purchase", "hebrew": "קניה", "accepted_answers": ["קניה", "קנייה", "רכישה", "לקנות"], "category": "nouns" },
-        { "id": "w3_4", "english": "minority", "hebrew": "מיעוט", "accepted_answers": ["מיעוט"], "category": "nouns" },
-        { "id": "w3_5", "english": "lowest", "hebrew": "נמוך ביותר", "accepted_answers": ["נמוך ביותר", "הכי נמוך"], "category": "adjectives" },
-        { "id": "w3_6", "english": "appliances", "hebrew": "מכשירי חשמל", "accepted_answers": ["מכשירי חשמל", "מוצרי חשמל"], "category": "nouns" },
-        { "id": "w3_7", "english": "bulging", "hebrew": "בולט / תפוח", "accepted_answers": ["בולט", "תפוח", "מתנפח"], "category": "adjectives" },
-        { "id": "w3_8", "english": "antique", "hebrew": "עתיק", "accepted_answers": ["עתיק", "עתיקה"], "category": "adjectives" },
-        { "id": "w3_9", "english": "furniture", "hebrew": "רהיטים", "accepted_answers": ["רהיטים", "ריהוט"], "category": "nouns" },
-        { "id": "w3_10", "english": "odds and ends", "hebrew": "שאריות, פריטים קטנים", "accepted_answers": ["שאריות", "פריטים קטנים", "שונות", "פריטים שונים"], "category": "nouns" },
-        { "id": "w3_11", "english": "nowadays", "hebrew": "כהיום", "accepted_answers": ["כהיום", "כיום", "בימינו"], "category": "adverbs" },
-        { "id": "w3_12", "english": "bid", "hebrew": "הצעת מחיר", "accepted_answers": ["הצעת מחיר", "להציע מחיר"], "category": "nouns" },
-        { "id": "w3_13", "english": "collectibles", "hebrew": "פריטי אספנות", "accepted_answers": ["פריטי אספנות", "פרטי אספנות"], "category": "nouns" },
-        { "id": "w3_14", "english": "jewelry", "hebrew": "תכשיטים", "accepted_answers": ["תכשיטים", "תכשיט"], "category": "nouns" },
-        { "id": "w3_15", "english": "earring and chains", "hebrew": "עגילים ושרשראות", "accepted_answers": ["עגילים ושרשראות"], "category": "nouns" },
-        { "id": "w3_16", "english": "ridiculously", "hebrew": "בצורה מגוחכת", "accepted_answers": ["בצורה מגוחכת", "באופן מגוחך", "מגוחך"], "category": "adverbs" },
-        { "id": "w3_17", "english": "literally", "hebrew": "פשוטו כמשמעו", "accepted_answers": ["פשוטו כמשמעו", "מילולית"], "category": "adverbs" },
-        { "id": "w3_18", "english": "items", "hebrew": "פריטים", "accepted_answers": ["פריטים", "חפצים"], "category": "nouns" },
-        { "id": "w3_19", "english": "barrier", "hebrew": "מחסום", "accepted_answers": ["מחסום", "חסם"], "category": "nouns" },
-        { "id": "w3_20", "english": "exists", "hebrew": "קיים", "accepted_answers": ["קיים", "קיימים", "קיימת"], "category": "verbs" },
-        { "id": "w3_21", "english": "perhaps", "hebrew": "ייתכן", "accepted_answers": ["ייתכן", "אולי"], "category": "adverbs" },
-        { "id": "w3_22", "english": "habits", "hebrew": "הרגלים", "accepted_answers": ["הרגלים", "הרגל"], "category": "nouns" },
-        { "id": "w3_23", "english": "obsession", "hebrew": "אובססיה", "accepted_answers": ["אובססיה", "כפייתיות"], "category": "nouns" },
-        { "id": "w3_24", "english": "unfortunate", "hebrew": "מצער", "accepted_answers": ["מצער", "אומלל"], "category": "adjectives" },
-        { "id": "w3_25", "english": "receive", "hebrew": "לקבל", "accepted_answers": ["לקבל", "מקבל"], "category": "verbs" },
-        { "id": "w3_26", "english": "unscrupulous", "hebrew": "חסר מצפון", "accepted_answers": ["חסר מצפון", "חסרי מצפון"], "category": "adjectives" },
-        { "id": "w3_27", "english": "customer", "hebrew": "לקוח", "accepted_answers": ["לקוח", "לקוחות"], "category": "nouns" },
-        { "id": "w3_28", "english": "addiction", "hebrew": "התמכרות", "accepted_answers": ["התמכרות", "מכור"], "category": "nouns" },
-        { "id": "w3_29", "english": "consequently", "hebrew": "כתוצאה מכך", "accepted_answers": ["כתוצאה מכך", "בעקבות זאת"], "category": "adverbs" },
-        { "id": "w3_30", "english": "proceed", "hebrew": "להתקדם", "accepted_answers": ["להתקדם", "מתקדם", "להמשיך"], "category": "verbs" },
-        { "id": "w3_31", "english": "due", "hebrew": "ראוי, נאות", "accepted_answers": ["ראוי", "נאות", "ראויה"], "category": "adjectives" },
-        { "id": "w3_32", "english": "arise", "hebrew": "להתעורר, לנבוע", "accepted_answers": ["להתעורר", "לנבוע", "נובע", "מתעורר"], "category": "verbs" },
-        { "id": "w3_33", "english": "instructed", "hebrew": "מודרך", "accepted_answers": ["מודרך", "מונחה", "הודרך"], "category": "verbs" },
-        { "id": "w3_34", "english": "sum up", "hebrew": "לסכם", "accepted_answers": ["לסכם", "מסכם"], "category": "verbs" },
-        { "id": "w3_35", "english": "resist", "hebrew": "להתנגד", "accepted_answers": ["להתנגד", "מתנגד"], "category": "verbs" },
-        { "id": "w3_36", "english": "opportunity", "hebrew": "הזדמנות", "accepted_answers": ["הזדמנות"], "category": "nouns" },
-        { "id": "w3_37", "english": "brand", "hebrew": "מותג", "accepted_answers": ["מותג"], "category": "nouns" },
-        { "id": "w3_38", "english": "wonder", "hebrew": "תוהה", "accepted_answers": ["תוהה", "לתהות"], "category": "verbs" },
-        { "id": "w3_39", "english": "faithful", "hebrew": "חדור אמונה, נאמן", "accepted_answers": ["חדור אמונה", "נאמן", "נאמנה", "אמין"], "category": "adjectives" },
-        { "id": "w3_40", "english": "attendees", "hebrew": "משתתפים", "accepted_answers": ["משתתפים", "נוכחים", "משתתף"], "category": "nouns" }
+        { "id": "w1_1", "english": "antique", "hebrew": "עתיק", "accepted_answers": ["עתיק", "עתיקה", "ישן"], "category": "adjectives" },
+        { "id": "w1_2", "english": "furniture", "hebrew": "רהיטים", "accepted_answers": ["רהיטים", "ריהוט"], "category": "nouns" }
       ],
       "sentences": [
         {
-          "id": "s3_1",
-          "text_with_blanks": "I will place a ___ on this beautiful antique clock at the ___.",
-          "translation_hebrew": "אני אגיש הצעת מחיר על השעון העתיק והיפה הזה במכירה הפומבית.",
+          "id": "s1_1",
+          "text_with_blanks": "I bought some beautiful ___ for my new living room.",
+          "translation_hebrew": "קניתי רהיטים יפים לסלון החדש שלי.",
           "answers": [
-            { "words": ["bid", "auction"], "is_correct": true },
-            { "words": ["brand", "customer"], "is_correct": false },
-            { "words": ["opportunity", "purchase"], "is_correct": false },
-            { "words": ["barrier", "furniture"], "is_correct": false }
+            { "words": ["furniture"], "is_correct": true },
+            { "words": ["antique"], "is_correct": false }
           ],
-          "glossary": { "place": "להניח/להגיש", "beautiful": "יפה", "clock": "שעון" }
+          "glossary": { "bought": "קניתי", "beautiful": "יפים", "living room": "סלון" }
+        },
+        {
+          "id": "s1_2",
+          "text_with_blanks": "The ___ store sells very expensive ___.",
+          "translation_hebrew": "החנות העתיקה מוכרת רהיטים מאוד יקרים.",
+          "answers": [
+            { "words": ["antique", "furniture"], "is_correct": true },
+            { "words": ["furniture", "antique"], "is_correct": false }
+          ],
+          "glossary": { "store": "חנות", "sells": "מוכרת", "expensive": "יקרים" }
         }
-      ]
-    },
-    {
-      "week_id": 4,
-      "title": "Week 4",
-      "words": [
-        { "id": "w4_1", "english": "kneading", "hebrew": "לישה", "accepted_answers": ["לישה", "ללוש", "לש"], "category": "verbs" },
-        { "id": "w4_2", "english": "mud", "hebrew": "טיט, רפש", "accepted_answers": ["טיט", "רפש", "בוץ"], "category": "nouns" },
-        { "id": "w4_3", "english": "tiny", "hebrew": "זעיר, קטנטן", "accepted_answers": ["זעיר", "קטנטן", "קטן מאוד"], "category": "adjectives" },
-        { "id": "w4_4", "english": "shape", "hebrew": "צורה, לעצב", "accepted_answers": ["צורה", "לעצב", "מעצב"], "category": "verbs" },
-        { "id": "w4_5", "english": "bricks", "hebrew": "לבנים", "accepted_answers": ["לבנים", "לבנה"], "category": "nouns" },
-        { "id": "w4_6", "english": "advance", "hebrew": "לקדם, מקדמה", "accepted_answers": ["לקדם", "מקדמה", "מתקדם", "להתקדם"], "category": "verbs" },
-        { "id": "w4_7", "english": "wages", "hebrew": "משכורת", "accepted_answers": ["משכורת", "שכר", "משכורות"], "category": "nouns" },
-        { "id": "w4_8", "english": "kiln", "hebrew": "כבשן", "accepted_answers": ["כבשן", "תנור"], "category": "nouns" },
-        { "id": "w4_9", "english": "debt", "hebrew": "משא, חוב", "accepted_answers": ["משא", "חוב", "חובות"], "category": "nouns" },
-        { "id": "w4_10", "english": "surveys", "hebrew": "סקרים", "accepted_answers": ["סקרים", "סקר"], "category": "nouns" },
-        { "id": "w4_11", "english": "loan", "hebrew": "הלוואה", "accepted_answers": ["הלוואה", "להלוות"], "category": "nouns" },
-        { "id": "w4_12", "english": "refugees", "hebrew": "פליטים", "accepted_answers": ["פליטים", "פליט"], "category": "nouns" },
-        { "id": "w4_13", "english": "reduce", "hebrew": "לצמצם, להפחית", "accepted_answers": ["לצמצם", "להפחית", "מצמצם", "מפחית"], "category": "verbs" },
-        { "id": "w4_14", "english": "amount", "hebrew": "כמות", "accepted_answers": ["כמות", "סכום"], "category": "nouns" },
-        { "id": "w4_15", "english": "ceremonies", "hebrew": "טקסים", "accepted_answers": ["טקסים", "טקס"], "category": "nouns" },
-        { "id": "w4_16", "english": "treatment", "hebrew": "טיפול", "accepted_answers": ["טיפול", "יחס"], "category": "nouns" },
-        { "id": "w4_17", "english": "requirement", "hebrew": "דרישות", "accepted_answers": ["דרישות", "דרישה"], "category": "nouns" },
-        { "id": "w4_18", "english": "illegal", "hebrew": "לא חוקי", "accepted_answers": ["לא חוקי", "בלתי חוקי"], "category": "adjectives" },
-        { "id": "w4_19", "english": "exaggeration", "hebrew": "הגזמה", "accepted_answers": ["הגזמה", "להגזים"], "category": "nouns" },
-        { "id": "w4_20", "english": "trade-unions", "hebrew": "איגודי עובדים", "accepted_answers": ["איגודי עובדים", "איגוד מקצועי"], "category": "nouns" },
-        { "id": "w4_21", "english": "trapped", "hebrew": "לכוד, ליפול בפח", "accepted_answers": ["לכוד", "ליפול בפח", "תקוע", "לכודה"], "category": "adjectives" },
-        { "id": "w4_22", "english": "commissioner", "hebrew": "נציב, חבר ועדה", "accepted_answers": ["נציב", "חבר ועדה"], "category": "nouns" },
-        { "id": "w4_23", "english": "solve", "hebrew": "לפתור", "accepted_answers": ["לפתור", "פותר"], "category": "verbs" },
-        { "id": "w4_24", "english": "denies", "hebrew": "מכחיש", "accepted_answers": ["מכחיש", "להכחיש"], "category": "verbs" },
-        { "id": "w4_25", "english": "insist", "hebrew": "להתעקש", "accepted_answers": ["להתעקש", "מתעקש"], "category": "verbs" },
-        { "id": "w4_26", "english": "poisonous", "hebrew": "רעיל", "accepted_answers": ["רעיל", "רעילה"], "category": "adjectives" },
-        { "id": "w4_27", "english": "barefoot", "hebrew": "יחף", "accepted_answers": ["יחף", "יחפים", "יחפה"], "category": "adjectives" },
-        { "id": "w4_28", "english": "convince", "hebrew": "לשכנע", "accepted_answers": ["לשכנע", "משכנע"], "category": "verbs" },
-        { "id": "w4_29", "english": "permission", "hebrew": "הרשאה", "accepted_answers": ["הרשאה", "רשות", "אישור"], "category": "nouns" },
-        { "id": "w4_30", "english": "accusations", "hebrew": "האשמות", "accepted_answers": ["האשמות", "האשמה"], "category": "nouns" },
-        { "id": "w4_31", "english": "reject", "hebrew": "לדחות", "accepted_answers": ["לדחות", "דוחה"], "category": "verbs" },
-        { "id": "w4_32", "english": "waive", "hebrew": "לוותר על", "accepted_answers": ["לוותר על", "לוותר"], "category": "verbs" },
-        { "id": "w4_33", "english": "instances", "hebrew": "מקרים", "accepted_answers": ["מקרים", "מקרה"], "category": "nouns" },
-        { "id": "w4_34", "english": "mentioned", "hebrew": "הוזכר", "accepted_answers": ["הוזכר", "מוזכר", "ציין", "מוזכרת"], "category": "verbs" },
-        { "id": "w4_35", "english": "proper", "hebrew": "נאות, ראוי", "accepted_answers": ["נאות", "ראוי", "מתאים"], "category": "adjectives" },
-        { "id": "w4_36", "english": "conditions", "hebrew": "תנאים", "accepted_answers": ["תנאים", "תנאי"], "category": "nouns" },
-        { "id": "w4_37", "english": "provided", "hebrew": "סיפק", "accepted_answers": ["סיפק", "לספק", "מספק"], "category": "verbs" },
-        { "id": "w4_38", "english": "tone", "hebrew": "צליל, טון", "accepted_answers": ["צליל", "טון"], "category": "nouns" },
-        { "id": "w4_39", "english": "biased", "hebrew": "משוחד", "accepted_answers": ["משוחד", "משוחדת"], "category": "adjectives" },
-        { "id": "w4_40", "english": "exposed", "hebrew": "חשוף", "accepted_answers": ["חשוף", "לחשוף", "חשופה"], "category": "adjectives" }
       ],
-      "sentences": [
+      "stories": [
         {
-          "id": "s4_1",
-          "text_with_blanks": "The workers demand fair ___ for working in such dangerous ___.",
-          "translation_hebrew": "הפועלים דורשים משכורת הוגנת על עבודה בתנאים כל כך מסוכנים.",
-          "answers": [
-            { "words": ["wages", "conditions"], "is_correct": true },
-            { "words": ["debt", "instances"], "is_correct": false },
-            { "words": ["loan", "accusations"], "is_correct": false },
-            { "words": ["amount", "surveys"], "is_correct": false }
+          "id": "story_w1_d0",
+          "day": 0,
+          "type": "daily",
+          "title": "The Old House",
+          "content": "Yesterday, I went to a special market. I was looking for some antique items because I love old things. Suddenly, I saw the most beautiful piece of furniture I have ever seen. It was a wooden chair from 100 years ago.",
+          "mcq_questions": [
+            {
+              "question": "What is the closest synonym for 'antique' in this text?",
+              "options": ["Ancient", "Modern", "Ugly", "Cheap"],
+              "correct_index": 0
+            },
+            {
+              "question": "What type of furniture did the person find?",
+              "options": ["A wooden chair", "A glass table", "A metal bed", "A plastic desk"],
+              "correct_index": 0
+            }
           ],
-          "glossary": { "demand": "דורשים", "fair": "הוגן", "dangerous": "מסוכן" }
-        }
-      ]
-    },
-    {
-      "week_id": 5,
-      "title": "Week 5",
-      "words": [
-        { "id": "w5_1", "english": "perform", "hebrew": "לבצע", "accepted_answers": ["לבצע", "מבצע"], "category": "verbs" },
-        { "id": "w5_2", "english": "paralyzed", "hebrew": "משותק", "accepted_answers": ["משותק", "משותקת"], "category": "adjectives" },
-        { "id": "w5_3", "english": "arms", "hebrew": "זרועות", "accepted_answers": ["זרועות", "ידיים", "זרוע"], "category": "nouns" },
-        { "id": "w5_4", "english": "fetch", "hebrew": "להביא", "accepted_answers": ["להביא", "מביא"], "category": "verbs" },
-        { "id": "w5_5", "english": "scratch itches", "hebrew": "לגרד", "accepted_answers": ["לגרד", "מגרד"], "category": "verbs" },
-        { "id": "w5_6", "english": "plenty", "hebrew": "שפע", "accepted_answers": ["שפע", "המון"], "category": "nouns" },
-        { "id": "w5_7", "english": "comb", "hebrew": "לסרק", "accepted_answers": ["לסרק", "מסרק"], "category": "verbs" },
-        { "id": "w5_8", "english": "hair", "hebrew": "שיער", "accepted_answers": ["שיער", "שערות"], "category": "nouns" },
-        { "id": "w5_9", "english": "independent", "hebrew": "עצמאי", "accepted_answers": ["עצמאי", "עצמאית"], "category": "adjectives" },
-        { "id": "w5_10", "english": "forced", "hebrew": "כפוי", "accepted_answers": ["כפוי", "מכריח", "כפויה"], "category": "adjectives" },
-        { "id": "w5_11", "english": "nursing", "hebrew": "טיפול", "accepted_answers": ["טיפול", "סיעוד"], "category": "nouns" },
-        { "id": "w5_12", "english": "despair", "hebrew": "ייאוש", "accepted_answers": ["ייאוש", "מיואש"], "category": "nouns" },
-        { "id": "w5_13", "english": "helplessness", "hebrew": "חוסר אונים", "accepted_answers": ["חוסר אונים", "חוסר ישע"], "category": "nouns" },
-        { "id": "w5_14", "english": "dormitories", "hebrew": "מעונות", "accepted_answers": ["מעונות", "מעון"], "category": "nouns" },
-        { "id": "w5_15", "english": "raising", "hebrew": "הרמה", "accepted_answers": ["הרמה", "מרים", "להרים"], "category": "verbs" },
-        { "id": "w5_16", "english": "laser beam", "hebrew": "קרן לייזר", "accepted_answers": ["קרן לייזר", "לייזר"], "category": "nouns" },
-        { "id": "w5_17", "english": "graduating", "hebrew": "סיום למידה", "accepted_answers": ["סיום למידה", "לסיים למידה", "לסיים לימודים", "מסיימים למידה"], "category": "verbs" },
-        { "id": "w5_18", "english": "immense", "hebrew": "עצום", "accepted_answers": ["עצום", "ענק", "עצומה"], "category": "adjectives" },
-        { "id": "w5_19", "english": "amusing", "hebrew": "משעשע", "accepted_answers": ["משעשע", "לשעשע"], "category": "adjectives" },
-        { "id": "w5_20", "english": "contributors", "hebrew": "תורמים", "accepted_answers": ["תורמים", "תורם"], "category": "nouns" },
-        { "id": "w5_21", "english": "approximately", "hebrew": "בערך", "accepted_answers": ["בערך", "בקרוב", "בקירוב"], "category": "adverbs" },
-        { "id": "w5_22", "english": "companion", "hebrew": "בן לוויה / חבר", "accepted_answers": ["בן לוויה", "חבר", "בן לויה"], "category": "nouns" },
-        { "id": "w5_23", "english": "pair", "hebrew": "זוג", "accepted_answers": ["זוג", "צמד"], "category": "nouns" },
-        { "id": "w5_24", "english": "capable", "hebrew": "מסוגל / בעל יכולת", "accepted_answers": ["מסוגל", "בעל יכולת", "יכול"], "category": "adjectives" },
-        { "id": "w5_25", "english": "runs it", "hebrew": "להריץ / לנהל", "accepted_answers": ["להריץ", "לנהל", "מנהל", "מריץ"], "category": "verbs" },
-        { "id": "w5_26", "english": "phrases", "hebrew": "ביטויים", "accepted_answers": ["ביטויים", "משפטים", "ביטוי"], "category": "nouns" },
-        { "id": "w5_27", "english": "spent", "hebrew": "לבזבז", "accepted_answers": ["לבזבז", "מבזבז", "בזבז"], "category": "verbs" },
-        { "id": "w5_28", "english": "organization", "hebrew": "ארגון", "accepted_answers": ["ארגון", "אירגון"], "category": "nouns" },
-        { "id": "w5_29", "english": "owners", "hebrew": "בעלים", "accepted_answers": ["בעלים"], "category": "nouns" },
-        { "id": "w5_30", "english": "task", "hebrew": "מלאכה", "accepted_answers": ["מלאכה", "משימה"], "category": "nouns" },
-        { "id": "w5_31", "english": "idea", "hebrew": "רעיון", "accepted_answers": ["רעיון", "מושג"], "category": "nouns" },
-        { "id": "w5_32", "english": "college", "hebrew": "מכללה", "accepted_answers": ["מכללה", "קולג'"], "category": "nouns" },
-        { "id": "w5_33", "english": "program", "hebrew": "תוכנית", "accepted_answers": ["תוכנית", "תכנית"], "category": "nouns" },
-        { "id": "w5_34", "english": "respond", "hebrew": "תגובה", "accepted_answers": ["תגובה", "להגיב", "מגיב"], "category": "nouns" },
-        { "id": "w5_35", "english": "institutions", "hebrew": "מוסדות", "accepted_answers": ["מוסדות", "מוסד"], "category": "nouns" },
-        { "id": "w5_36", "english": "applications", "hebrew": "יישומים", "accepted_answers": ["יישומים", "אפליקציות", "יישום"], "category": "nouns" },
-        { "id": "w5_37", "english": "human", "hebrew": "אדם / בן אנוש", "accepted_answers": ["אדם", "בן אנוש", "בן אדם", "אנושי"], "category": "nouns" },
-        { "id": "w5_38", "english": "accident", "hebrew": "תאונה", "accepted_answers": ["תאונה", "מקרה"], "category": "nouns" },
-        { "id": "w5_39", "english": "objects", "hebrew": "חפצים", "accepted_answers": ["חפצים", "עצמים", "חפץ"], "category": "nouns" }
-      ],
-      "sentences": [
-        {
-          "id": "s5_1",
-          "text_with_blanks": "My new dog is an amazing ___, he helps me ___ things that fall on the floor.",
-          "translation_hebrew": "הכלב החדש שלי הוא בן לוויה מדהים, הוא עוזר לי להביא דברים שנופלים על הרצפה.",
-          "answers": [
-            { "words": ["companion", "fetch"], "is_correct": true },
-            { "words": ["human", "perform"], "is_correct": false },
-            { "words": ["owners", "comb"], "is_correct": false },
-            { "words": ["contributors", "spent"], "is_correct": false }
-          ],
-          "glossary": { "amazing": "מדהים", "things": "דברים", "floor": "רצפה" }
+          "open_questions": [
+            {
+              "id": "oq_1",
+              "question": "Why do you think people like to buy antique furniture instead of new ones?"
+            }
+          ]
         }
       ]
     }

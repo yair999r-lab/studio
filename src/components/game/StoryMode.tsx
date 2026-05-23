@@ -1,26 +1,59 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, BookOpen, CheckCircle, GraduationCap, ChevronRight, HelpCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import storyData from "@/app/lib/story.json";
+import { Progress } from "@/components/ui/progress";
+import { 
+  ArrowLeft, 
+  BookOpen, 
+  CheckCircle, 
+  ChevronRight, 
+  HelpCircle, 
+  GraduationCap, 
+  Trophy,
+  MessageSquareText
+} from "lucide-react";
 import vocabData from "@/app/lib/vocabulary.json";
-import { cn } from "@/lib/utils";
+import { cn, shuffleArray } from "@/lib/utils";
+
+type StoryPhase = "selection" | "read" | "mcq" | "open" | "summary";
 
 export function StoryMode({ onBack }: { onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState("read");
-  const [examAnswers, setExamAnswers] = useState<Record<number, number>>({});
-  const [showExamResults, setShowExamResults] = useState(false);
-  const [currentSelfQuestion, setCurrentSelfQuestion] = useState(0);
-  const [selfRevealed, setSelfRevealed] = useState(false);
-  const [selfScore, setSelfScore] = useState(0);
-  const [userResponse, setUserResponse] = useState("");
+  const [phase, setPhase] = useState<StoryPhase>("selection");
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [currentMcqIndex, setCurrentMcqIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isAnswering, setIsAnswering] = useState(false);
+  const [mcqScore, setMcqScore] = useState(0);
+  const [openResponses, setOpenResponses] = useState<Record<string, string>>({});
 
+  // 1. Identify Current Active Week and Filter Logic
+  const { currentStories, activeWeekTitle } = useMemo(() => {
+    const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
+    const currentWeek = vocabData.weeks.find(w => w.week_id === maxWeekId);
+    const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+    
+    if (!currentWeek) return { currentStories: [], activeWeekTitle: "" };
+
+    // Find stories for today or the weekly story
+    // Sun-Wed (0-3): Daily match
+    // Thu-Sat (4-6): Weekly type
+    const availableStories = currentWeek.stories.filter(s => {
+      if (today <= 3) return s.day === today || s.type === "daily";
+      return s.type === "weekly" || s.day >= 4;
+    });
+
+    return { 
+      currentStories: availableStories, 
+      activeWeekTitle: `Week ${maxWeekId}: ${currentWeek.title}` 
+    };
+  }, []);
+
+  // 2. Word Map for Highlighting
   const vocabMap = useMemo(() => {
     const map = new Map<string, string>();
     vocabData.weeks.forEach(week => {
@@ -47,7 +80,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                 </span>
               </TooltipTrigger>
               <TooltipContent className="bg-slate-800 text-white border-none p-3 rounded-xl shadow-xl">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Hebrew Translation</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Translation</p>
                 <p className="text-lg font-bold" dir="rtl">{translation}</p>
               </TooltipContent>
             </Tooltip>
@@ -58,202 +91,220 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     });
   };
 
-  const calculateExamScore = () => {
-    let correct = 0;
-    storyData.multiple_choice.forEach((q, i) => {
-      if (examAnswers[i] === q.correct_index) correct++;
-    });
-    return correct;
-  };
-
-  const handleSelfAssessmentContinue = (wasCorrect: boolean) => {
-    if (wasCorrect) setSelfScore(s => s + 1);
-    setSelfRevealed(false);
-    setUserResponse("");
-    if (currentSelfQuestion + 1 < storyData.open_ended.length) {
-      setCurrentSelfQuestion(c => c + 1);
-    } else {
-      setActiveTab("read");
+  // Automatically select story if only one exists for today
+  useEffect(() => {
+    if (phase === "selection" && currentStories.length === 1) {
+      setSelectedStory(currentStories[0]);
+      setPhase("read");
     }
+  }, [phase, currentStories]);
+
+  const handleAnswer = (idx: number, isCorrect: boolean) => {
+    if (isAnswering) return;
+    setSelectedAnswer(idx);
+    setIsAnswering(true);
+    
+    if (isCorrect) setMcqScore(s => s + 1);
+
+    setTimeout(() => {
+      setIsAnswering(false);
+      setSelectedAnswer(null);
+      if (currentMcqIndex + 1 < selectedStory.mcq_questions.length) {
+        setCurrentMcqIndex(i => i + 1);
+      } else if (selectedStory.open_questions?.length > 0) {
+        setPhase("open");
+      } else {
+        setPhase("summary");
+      }
+    }, 1500);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-6 pb-20 transition-all duration-500">
-      <div className="max-w-5xl mx-auto">
-        <header className="flex items-center gap-6 mb-10">
-          <Button variant="ghost" onClick={onBack} className="rounded-2xl h-12 w-12 p-0 hover:bg-white/50 transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm">
-            <ArrowLeft className="w-8 h-8 text-slate-600" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-headline font-bold text-slate-800 drop-shadow-sm">{storyData.title}</h1>
-            <p className="text-slate-600 text-sm font-medium">Immersive Reading & Comprehension</p>
-          </div>
-        </header>
+  const handleOpenResponse = (id: string, text: string) => {
+    setOpenResponses(prev => ({ ...prev, [id]: text }));
+  };
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="bg-white/70 backdrop-blur-sm p-1.5 rounded-2xl w-full max-w-md h-auto gap-1 border-none shadow-lg">
-            <TabsTrigger 
-              value="read" 
-              className={cn(
-                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "read" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
-              )}
-            >
-              <BookOpen className="w-4 h-4 mr-2" /> Read
-            </TabsTrigger>
-            <TabsTrigger 
-              value="exam" 
-              className={cn(
-                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "exam" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
-              )}
-            >
-              <GraduationCap className="w-4 h-4 mr-2" /> Exam
-            </TabsTrigger>
-            <TabsTrigger 
-              value="self" 
-              className={cn(
-                "rounded-xl flex-1 py-3 transition-all duration-300 hover:scale-105 cursor-pointer",
-                activeTab === "self" ? "bg-blue-600 text-white shadow-md scale-105" : "bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-500"
-              )}
-            >
-              <HelpCircle className="w-4 h-4 mr-2" /> Review
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="read" className="space-y-8 outline-none">
-            <Card className="p-10 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md">
-              <div className="max-w-3xl mx-auto space-y-8">
-                {storyData.paragraphs.map((para, i) => (
-                  <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
-                    {highlightText(para)}
-                  </p>
-                ))}
-              </div>
-            </Card>
-            <div className="flex justify-center">
-               <Button onClick={() => setActiveTab("exam")} className="chunky-button chunky-primary px-12 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-lg">
-                 START THE EXAM <ChevronRight className="ml-2" />
-               </Button>
+  // Phase: Selection
+  if (phase === "selection") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
+        <div className="max-w-4xl w-full">
+          <header className="flex items-center gap-6 mb-12">
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl h-14 w-14 bg-white/80 shadow-md hover:scale-110 active:scale-95 transition-all">
+              <ArrowLeft className="w-8 h-8 text-slate-600" />
+            </Button>
+            <div>
+              <h1 className="text-4xl font-headline font-bold text-slate-800">Story Room</h1>
+              <p className="text-slate-500 font-medium">{activeWeekTitle}</p>
             </div>
-          </TabsContent>
+          </header>
 
-          <TabsContent value="exam" className="outline-none">
-            {showExamResults ? (
-              <Card className="p-12 text-center rounded-[40px] shadow-2xl border-none bg-white/95 backdrop-blur-md">
-                 <CheckCircle className="w-24 h-24 text-emerald-500 mx-auto mb-6" />
-                 <h2 className="text-4xl font-headline font-bold text-slate-800 mb-2">Exam Complete!</h2>
-                 <p className="text-slate-400 mb-10">You scored {calculateExamScore()} out of {storyData.multiple_choice.length}</p>
-                 <Button onClick={() => { setShowExamResults(false); setExamAnswers({}); }} className="chunky-button chunky-primary py-6 px-12 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-                   RETRY EXAM
-                 </Button>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                {storyData.multiple_choice.map((q, i) => (
-                  <Card key={i} className="p-8 rounded-[32px] border-none shadow-2xl bg-white/95 backdrop-blur-md">
-                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-4">
-                      <span className="text-primary/30">Q{i+1}.</span>
-                      {q.question}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {q.options.map((opt, optIdx) => (
-                        <button
-                          key={optIdx}
-                          onClick={() => setExamAnswers(prev => ({ ...prev, [i]: optIdx }))}
-                          className={cn(
-                            "p-5 rounded-2xl text-left font-bold transition-all duration-300 border-2 hover:scale-105 active:scale-95 cursor-pointer shadow-sm",
-                            examAnswers[i] === optIdx 
-                              ? "bg-primary text-white border-primary shadow-lg" 
-                              : "bg-slate-50 text-slate-600 border-slate-100 hover:border-primary/20"
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </Card>
-                ))}
-                <div className="py-10 flex justify-center">
-                  <Button 
-                    disabled={Object.keys(examAnswers).length < storyData.multiple_choice.length}
-                    onClick={() => setShowExamResults(true)} 
-                    className="chunky-button chunky-primary px-16 py-8 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-lg"
-                  >
-                    SUBMIT EXAM
-                  </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {currentStories.length > 0 ? currentStories.map((story: any) => (
+              <Card 
+                key={story.id} 
+                className="p-8 rounded-[32px] border-none shadow-xl bg-white/95 backdrop-blur-md hover:scale-105 transition-all cursor-pointer group"
+                onClick={() => { setSelectedStory(story); setPhase("read"); }}
+              >
+                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
+                  <BookOpen className="w-7 h-7 text-blue-600 group-hover:text-white" />
                 </div>
-              </div>
+                <h3 className="text-2xl font-headline font-bold text-slate-800 mb-2">{story.title}</h3>
+                <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">{story.type} Practice</p>
+              </Card>
+            )) : (
+              <Card className="col-span-full p-12 text-center rounded-[32px] bg-white/50 border-none shadow-inner">
+                <p className="text-slate-500 text-xl font-medium">No stories available for this time chunk yet.</p>
+              </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="self" className="outline-none">
-            <div className="max-w-3xl mx-auto space-y-12">
-               <div className="text-center space-y-4">
-                 <h2 className="text-4xl font-headline font-bold text-slate-800 drop-shadow-sm">Open Assessment</h2>
-                 <p className="text-slate-600">Recall the details from the story to test your comprehension.</p>
-               </div>
-
-               <Card className="p-12 rounded-[48px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center relative overflow-hidden min-h-[500px] flex flex-col justify-center">
-                  <div className="absolute top-0 inset-x-0 h-3 bg-primary/20" />
-                  
-                  <div className="space-y-10">
-                    <div className="space-y-4">
-                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Question {currentSelfQuestion + 1} of {storyData.open_ended.length}</p>
-                      <h3 className="text-3xl font-headline font-bold text-slate-800 leading-tight">
-                        {storyData.open_ended[currentSelfQuestion].question}
-                      </h3>
-                    </div>
-
-                    {!selfRevealed ? (
-                      <div className="space-y-6 max-w-2xl mx-auto w-full">
-                        <Textarea 
-                          value={userResponse}
-                          onChange={(e) => setUserResponse(e.target.value)}
-                          placeholder="Draft your answer here to practice..."
-                          className="min-h-[160px] rounded-[32px] p-6 text-lg border-2 border-slate-100 focus:border-primary transition-all resize-none shadow-inner bg-slate-50"
-                        />
-                        <Button 
-                          onClick={() => setSelfRevealed(true)}
-                          className="chunky-button chunky-primary py-8 px-12 text-xl mx-auto transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer shadow-md"
-                        >
-                          REVEAL ANSWER
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="p-8 bg-emerald-50/70 rounded-[32px] border-2 border-emerald-100 shadow-sm">
-                          <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-4">Correct Answer</p>
-                          <p className="text-emerald-700 text-xl font-medium leading-relaxed italic">
-                            "{storyData.open_ended[currentSelfQuestion].answer}"
-                          </p>
-                        </div>
-                        
-                        <div className="space-y-6">
-                          <p className="font-bold text-slate-500">Did your answer match the key points?</p>
-                          <div className="flex gap-4 justify-center">
-                            <Button 
-                              onClick={() => handleSelfAssessmentContinue(true)}
-                              className="chunky-button chunky-success px-10 py-6 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
-                            >
-                              YES, I GOT IT!
-                            </Button>
-                            <Button 
-                              onClick={() => handleSelfAssessmentContinue(false)}
-                              className="chunky-button chunky-error px-10 py-6 transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer"
-                            >
-                              NOT QUITE
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-               </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
+    );
+  }
+
+  // Phase: Reading
+  if (phase === "read") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
+        <div className="max-w-4xl w-full">
+          <header className="flex items-center gap-6 mb-12">
+            <Button variant="ghost" onClick={() => setPhase("selection")} className="rounded-2xl h-12 w-12 bg-white/80 shadow-md hover:scale-110 active:scale-95 transition-all">
+              <ArrowLeft className="w-6 h-6 text-slate-600" />
+            </Button>
+            <h1 className="text-3xl font-headline font-bold text-slate-800">{selectedStory.title}</h1>
+          </header>
+
+          <Card className="p-12 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md mb-12">
+            <div className="prose prose-slate max-w-none">
+              <p className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight whitespace-pre-wrap">
+                {highlightText(selectedStory.content)}
+              </p>
+            </div>
+          </Card>
+
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => setPhase("mcq")} 
+              className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg"
+            >
+              START COMPREHENSION <ChevronRight className="ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: MCQ
+  if (phase === "mcq") {
+    const q = selectedStory.mcq_questions[currentMcqIndex];
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
+        <div className="max-w-3xl w-full">
+          <header className="mb-12">
+            <div className="flex justify-between items-end mb-4">
+               <span className="text-blue-600 font-bold">Comprehension: {currentMcqIndex + 1} / {selectedStory.mcq_questions.length}</span>
+               <GraduationCap className="text-blue-300 w-8 h-8" />
+            </div>
+            <Progress value={((currentMcqIndex + 1) / selectedStory.mcq_questions.length) * 100} className="h-4 bg-white/50 border-none" />
+          </header>
+
+          <Card className="p-12 rounded-[40px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center">
+            <h2 className="text-3xl font-headline font-bold text-slate-800 mb-12 leading-tight px-4">
+              {q.question}
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto">
+              {q.options.map((opt: string, i: number) => {
+                const isCorrect = i === q.correct_index;
+                const isSelected = selectedAnswer === i;
+                return (
+                  <button
+                    key={i}
+                    disabled={isAnswering}
+                    onClick={() => handleAnswer(i, isCorrect)}
+                    className={cn(
+                      "chunky-button text-xl py-6 px-8 transition-all duration-300 shadow-md border-2",
+                      !isAnswering && "bg-slate-50 text-slate-700 border-slate-100 hover:scale-105 active:scale-95 cursor-pointer",
+                      isAnswering && isCorrect && "bg-emerald-500 text-white border-emerald-600 scale-105",
+                      isAnswering && isSelected && !isCorrect && "bg-rose-500 text-white border-rose-600 animate-shake",
+                      isAnswering && !isSelected && !isCorrect && "opacity-40 grayscale-[0.5]"
+                    )}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: Open Questions
+  if (phase === "open") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
+        <div className="max-w-3xl w-full">
+          <header className="text-center mb-12">
+            <MessageSquareText className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+            <h1 className="text-3xl font-headline font-bold text-slate-800">Final Reflections</h1>
+            <p className="text-slate-500 font-medium">Think about the story and type your answers below.</p>
+          </header>
+
+          <div className="space-y-8 mb-12">
+            {selectedStory.open_questions.map((q: any, i: number) => (
+              <Card key={q.id} className="p-8 rounded-[32px] border-none shadow-xl bg-white/95 backdrop-blur-md">
+                <h3 className="text-xl font-bold text-slate-800 mb-6 flex gap-3">
+                  <span className="text-blue-300">Q{i+1}.</span>
+                  {q.question}
+                </h3>
+                <Textarea 
+                  value={openResponses[q.id] || ""}
+                  onChange={(e) => handleOpenResponse(q.id, e.target.value)}
+                  placeholder="Type your thoughts here..."
+                  className="min-h-[140px] rounded-[24px] p-6 text-lg bg-slate-50 border-slate-100 focus:border-blue-500 transition-all resize-none shadow-inner"
+                />
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex justify-center pb-20">
+            <Button 
+              onClick={() => setPhase("summary")} 
+              className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg"
+            >
+              FINISH STORY <Trophy className="ml-2" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase: Summary
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-8">
+      <Card className="max-w-xl w-full p-12 rounded-[48px] border-none shadow-2xl bg-white/95 backdrop-blur-md text-center">
+        <div className="w-24 h-24 bg-emerald-100 rounded-[32px] flex items-center justify-center mx-auto mb-8 animate-bounce">
+          <Trophy className="w-12 h-12 text-emerald-600" />
+        </div>
+        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Story Complete!</h1>
+        <p className="text-slate-500 text-lg mb-10">You've successfully mastered today's reading challenge.</p>
+        
+        <div className="bg-blue-50 p-8 rounded-[32px] mb-10">
+          <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-1">Quiz Score</p>
+          <p className="text-5xl font-bold text-blue-700">{mcqScore} / {selectedStory.mcq_questions.length}</p>
+        </div>
+
+        <Button 
+          onClick={onBack} 
+          className="w-full chunky-button chunky-primary py-8 text-xl shadow-md transition-all hover:scale-105 active:scale-95"
+        >
+          BACK TO STUDY ROOM
+        </Button>
+      </Card>
     </div>
   );
 }
