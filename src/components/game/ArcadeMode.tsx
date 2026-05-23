@@ -32,12 +32,12 @@ export function ArcadeMode({
   const [beads, setBeads] = useState<Bead[]>([]);
   const [isPenalty, setIsPenalty] = useState(false);
   const [flashRed, setFlashRed] = useState(false);
-  const [speed, setSpeed] = useState(0.0006); // Progress per frame
+  const [speed, setSpeed] = useState(0.0008);
   
   const gameLoopRef = useRef<number | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
 
-  // Pool management: Phase 1 (0-9) vs Phase 2 (10+)
+  // Pool management
   const todayPool = useMemo(() => {
     return filteredVocab.weeks.flatMap(w => w.words);
   }, [filteredVocab]);
@@ -88,7 +88,7 @@ export function ArcadeMode({
           progress: b.progress + speed
         }));
 
-        // 2. Check for loss condition (Leader bead hits the exit hole at progress 1.0)
+        // 2. Check for loss condition: ONLY when the leader hits progress 1.0
         if (updated.length > 0 && updated[0].progress >= 1) {
           updated.shift();
           setLives(l => {
@@ -102,12 +102,12 @@ export function ArcadeMode({
           setTimeout(() => setFlashRed(false), 300);
         }
 
-        // 3. Spawning logic: Maintain a tightly packed chain
-        const lastBeadInChain = updated[updated.length - 1];
-        // Threshold for spawning the next bead (roughly diameter of a bead in % path length)
-        const spawnThreshold = 0.065; 
+        // 3. Spawning logic: Tightly packed based on bead diameter
+        // Bead diameter is ~80px, total path length is ~1200px. Threshold = 80/1200 = 0.066
+        const spawnThreshold = 0.07; 
+        const lastBead = updated[updated.length - 1];
 
-        if (!lastBeadInChain || lastBeadInChain.progress > spawnThreshold) {
+        if (!lastBead || lastBead.progress > spawnThreshold) {
           const newBead = createBead();
           if (newBead) {
             updated.push(newBead);
@@ -124,34 +124,32 @@ export function ArcadeMode({
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, speed, score, createBead]);
+  }, [gameState, speed, createBead]);
 
   const handleAnswer = (beadId: string, isCorrect: boolean) => {
     if (isPenalty || beads.length === 0) return;
 
-    // Only allow answering the "Leader" bead (first in array)
+    // Only allow answering the Leader bead
     if (beadId !== beads[0].id) return;
 
     if (isCorrect) {
-      setBeads(prev => prev.slice(1)); // Remove the leader
+      setBeads(prev => prev.slice(1));
       setScore(s => {
         const next = s + 1;
-        // Increase speed slightly every 5 points
         if (next % 5 === 0) setSpeed(prev => prev + 0.0001);
         onScore(1);
         return next;
       });
     } else {
       setIsPenalty(true);
-      setTimeout(() => setIsPenalty(false), 1000); // 1s penalty for wrong guess
+      setTimeout(() => setIsPenalty(false), 1000);
     }
   };
 
-  // SVG Path calculation
   const getCoordinates = (progress: number) => {
     if (!pathRef.current) return { x: 0, y: 0 };
     const length = pathRef.current.getTotalLength();
-    const point = pathRef.current.getPointAtLength(length * progress);
+    const point = pathRef.current.getPointAtLength(length * Math.min(progress, 1));
     return { x: point.x, y: point.y };
   };
 
@@ -159,26 +157,21 @@ export function ArcadeMode({
 
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline overflow-hidden relative">
-         <div className="absolute inset-0 opacity-20">
-            <svg width="100%" height="100%" viewBox="0 0 1000 1000">
-               <path d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" fill="none" stroke="white" strokeWidth="2" strokeDasharray="10 10" />
-            </svg>
-         </div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline relative">
         <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[40px] p-12 text-center relative z-10 shadow-2xl">
           <div className="w-24 h-24 bg-primary rounded-[32px] mx-auto mb-8 flex items-center justify-center shadow-lg transform rotate-12">
             <Zap className="text-white w-12 h-12 fill-white" />
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">Word Chain</h1>
           <p className="text-slate-300 mb-12 text-lg leading-relaxed">
-            Stop the chain before it reaches the end!<br/>
-            Speed increases as you master more words.
+            Stop the chain before it reaches the exit!<br/>
+            Speed increases every 5 points.
           </p>
           <div className="space-y-4">
-            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl">
               START DEFENSE
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white transition-colors">
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
               Return to Lobby
             </Button>
           </div>
@@ -200,7 +193,7 @@ export function ArcadeMode({
             <p className="text-8xl font-bold text-primary tracking-tighter">{score}</p>
           </div>
           <div className="space-y-4">
-            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl">
               TRY AGAIN
             </Button>
             <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
@@ -214,148 +207,148 @@ export function ArcadeMode({
 
   return (
     <div className={cn(
-      "fixed inset-0 bg-slate-950 overflow-hidden font-headline transition-colors duration-300",
+      "fixed inset-0 flex flex-col bg-slate-950 overflow-hidden font-headline transition-colors duration-300",
       flashRed && "bg-rose-950"
     )}>
-      {/* HUD: Arcane Styled */}
-      <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
-        <div className="pointer-events-auto">
+      {/* 1. TOP AREA: Game Board */}
+      <div className="flex-1 relative overflow-hidden bg-slate-900/50">
+        {/* HUD Overlay */}
+        <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
           <Button 
             variant="ghost" 
             onClick={onBack} 
-            className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl text-white font-bold h-12 border border-white/10 transition-all duration-300 hover:scale-105 active:scale-95"
+            className="pointer-events-auto bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl text-white font-bold h-12 border border-white/10"
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
           </Button>
+
+          <div className="flex flex-col items-end gap-4">
+            <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex gap-3">
+              {[...Array(2)].map((_, i) => (
+                <Heart key={i} className={cn("w-8 h-8", i < lives ? "text-rose-500 fill-rose-500" : "text-white/5")} />
+              ))}
+            </div>
+            <div className="bg-primary text-white px-8 py-3 rounded-2xl shadow-xl font-bold text-3xl border-b-4 border-indigo-800">
+              {score}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col items-end gap-4">
-          <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex gap-3 shadow-xl">
-            {[...Array(2)].map((_, i) => (
-              <Heart key={i} className={cn("w-8 h-8 transition-all duration-500", i < lives ? "text-rose-500 fill-rose-500 scale-110" : "text-white/5 grayscale")} />
-            ))}
-          </div>
-          <div className="bg-primary text-white px-10 py-4 rounded-3xl shadow-2xl border-b-4 border-indigo-800 font-bold text-4xl">
-            {score}
-          </div>
-        </div>
-      </div>
-
-      {/* Decorative Background Orbs (Arcane) */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
-
-      {/* The Word Defense Arena */}
-      <div className="absolute inset-0 z-10">
-        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice">
-          {/* Main Solid Track Path */}
+        {/* SVG Game Board */}
+        <svg 
+          viewBox="0 0 1000 600" 
+          preserveAspectRatio="xMidYMid meet" 
+          className="w-full h-full absolute inset-0 z-0"
+        >
+          {/* Neon Track */}
           <path 
             ref={pathRef}
-            id="gamePath"
-            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
             fill="none" 
             stroke="#27272a" 
-            strokeWidth="90" 
-            strokeLinecap="round"
+            strokeWidth="80" 
+            strokeLinecap="round" 
           />
-          {/* Inner Decorative Track Lining */}
           <path 
-            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
             fill="none" 
             stroke="#3f3f46" 
-            strokeWidth="80" 
-            strokeLinecap="round"
+            strokeWidth="70" 
+            strokeLinecap="round" 
           />
-          {/* Neon Glow Outline */}
           <path 
-            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            d="M 100,100 C 400,100 400,300 700,300 C 900,300 900,500 700,500 L 200,500" 
             fill="none" 
-            stroke="rgba(129, 140, 248, 0.3)" 
-            strokeWidth="92" 
-            strokeLinecap="round"
-            className="blur-[2px]"
+            stroke="rgba(129, 140, 248, 0.2)" 
+            strokeWidth="82" 
+            strokeLinecap="round" 
           />
           
-          {/* The Exit Hole */}
-          <g>
-            <circle cx="950" cy="400" r="55" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
-            <circle cx="950" cy="400" r="45" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
-            <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.4" className="animate-ping" />
+          {/* Exit Hole */}
+          <g transform="translate(200, 500)">
+            <circle r="55" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
+            <circle r="45" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
+          </g>
+
+          {/* Snake Head */}
+          <g transform="translate(100, 100)">
+            <circle r="60" fill="#10b981" className="opacity-20 blur-xl" />
+            <text x="-35" y="30" fontSize="80" className="select-none">🐍</text>
           </g>
         </svg>
 
-        {/* Snake Head (Source) */}
-        <div className="absolute top-[150px] left-[50px] -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-           <div className="w-28 h-28 bg-emerald-600 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-2xl">
-              <span className="text-6xl select-none">🐍</span>
-           </div>
-        </div>
-
-        {/* The Packed Word Chain: Uniform Zuma-style beads */}
-        {beads.map((bead, index) => {
-          const coords = getCoordinates(bead.progress);
-          const isLeader = index === 0;
-          return (
-            <div 
-              key={bead.id}
-              className={cn(
-                "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 z-20",
-                isLeader ? "z-30 scale-100" : "scale-95"
-              )}
-              style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
-            >
-              <div className={cn(
-                "w-24 h-24 rounded-full border-4 flex items-center justify-center text-center p-3 transition-all duration-300 bg-gradient-to-br from-slate-700 to-slate-800 shadow-xl",
-                isLeader 
-                  ? "border-white shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-110" 
-                  : "border-slate-500 opacity-90"
-              )}>
-                <span className={cn(
-                  "font-bold leading-tight break-words transition-all duration-300 text-sm",
-                  isLeader ? "text-white" : "text-slate-300"
-                )}>
-                  {bead.word.english}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Answer Console */}
-      <div className="absolute bottom-12 inset-x-0 z-50 px-8 max-w-4xl mx-auto">
-        {beads.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-10 duration-500">
-            {beads[0].options.map((opt, i) => (
-              <Button
-                key={i}
-                disabled={isPenalty}
-                onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
+        {/* Beads (React Components synced to SVG) */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          {beads.map((bead, index) => {
+            const coords = getCoordinates(bead.progress);
+            const isLeader = index === 0;
+            
+            // Adjust coordinates based on the SVG-to-screen scale manually isn't needed if we use absolute container that matches svg aspect ratio
+            // But better to use SVG foreignObject or just scaling. Let's use simple scaling for 1000x600 viewBox
+            return (
+              <div 
+                key={bead.id}
                 className={cn(
-                  "h-20 text-2xl font-bold rounded-[28px] transition-all duration-300 border-none shadow-2xl",
-                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/20 hover:bg-white/20 hover:scale-[1.02] active:scale-95 cursor-pointer",
-                  isPenalty && "opacity-20 grayscale cursor-not-allowed"
+                  "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75",
+                  isLeader ? "z-30" : "z-20"
                 )}
-                dir="rtl"
+                style={{ 
+                  left: `${(coords.x / 1000) * 100}%`, 
+                  top: `${(coords.y / 600) * 100}%` 
+                }}
               >
-                {opt.hebrew}
-              </Button>
-            ))}
-          </div>
-        )}
-        {isPenalty && (
-          <div className="text-center mt-6 animate-pulse">
-            <span className="bg-rose-500/20 text-rose-400 px-6 py-2 rounded-full border border-rose-500/30 text-sm font-bold uppercase tracking-widest">
-              Wait... 1s Penalty!
-            </span>
-          </div>
-        )}
+                <div className={cn(
+                  "w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center text-center p-2 shadow-2xl transition-all",
+                  isLeader 
+                    ? "bg-indigo-600 border-white shadow-[0_0_20px_rgba(255,255,255,0.5)] scale-110" 
+                    : "bg-slate-700 border-slate-500 opacity-90"
+                )}>
+                  <span className="font-bold text-white text-[10px] sm:text-xs leading-tight break-words">
+                    {bead.word.english}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Danger Zone Glow */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-80 h-80 bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* 2. BOTTOM AREA: Controls */}
+      <div className="h-[35vh] bg-slate-950/95 border-t border-white/10 p-6 flex flex-col justify-center items-center z-50">
+        <div className="max-w-4xl w-full">
+          {beads.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
+              {beads[0].options.map((opt, i) => (
+                <Button
+                  key={i}
+                  disabled={isPenalty}
+                  onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
+                  className={cn(
+                    "h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-3xl transition-all border-none shadow-xl",
+                    !isPenalty && "bg-white/5 text-white hover:bg-white/10 hover:scale-[1.02] active:scale-95",
+                    isPenalty && "opacity-20 grayscale cursor-not-allowed"
+                  )}
+                  dir="rtl"
+                >
+                  {opt.hebrew}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+              Preparing Defense...
+            </div>
+          )}
+          
+          {isPenalty && (
+            <div className="text-center mt-4">
+              <span className="text-rose-400 text-sm font-bold uppercase tracking-widest animate-pulse">
+                PENALTY: WAIT 1S
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
