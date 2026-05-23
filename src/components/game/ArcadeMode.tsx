@@ -4,12 +4,19 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Heart, Zap, Trophy, Skull } from "lucide-react";
+import { ArrowLeft, Heart, Zap, Skull, ShieldCheck } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn, shuffleArray } from "@/lib/utils";
 
 type GameState = "ready" | "playing" | "gameover";
+
+interface Bead {
+  id: string;
+  word: any;
+  progress: number; // 0 to 1
+  options: any[];
+}
 
 export function ArcadeMode({ 
   onBack, 
@@ -22,15 +29,15 @@ export function ArcadeMode({
   const [gameState, setGameState] = useState<GameState>("ready");
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(2);
-  const [yPos, setYPos] = useState(0); // 0 to 100 percentage
-  const [activeWord, setActiveWord] = useState<any>(null);
-  const [options, setOptions] = useState<any[]>([]);
+  const [beads, setBeads] = useState<Bead[]>([]);
   const [isPenalty, setIsPenalty] = useState(false);
-  const [wrongIndex, setWrongIndex] = useState<number | null>(null);
   const [flashRed, setFlashRed] = useState(false);
-  const [speed, setSpeed] = useState(0.15); // Percentage per frame
-
+  const [speed, setSpeed] = useState(0.0005); // Progress per frame
+  
   const gameLoopRef = useRef<number | null>(null);
+  const pathRef = useRef<SVGPathElement | null>(null);
+  const lastSpawnTime = useRef<number>(0);
+  const spawnInterval = 3000; // MS between spawns
 
   // Pool management
   const todayPool = useMemo(() => {
@@ -45,120 +52,132 @@ export function ArcadeMode({
     return [...pastWords, ...todayPool];
   }, [todayPool]);
 
-  const spawnSnake = useCallback(() => {
-    // Phase logic
+  const createBead = useCallback(() => {
     const currentPool = score >= 10 ? allUnlockedPool : todayPool;
-    if (currentPool.length === 0) return;
+    if (currentPool.length === 0) return null;
 
     const target = currentPool[Math.floor(Math.random() * currentPool.length)];
-    
-    // Distractors from the same pool
     const distractors = currentPool
       .filter(w => w.id !== target.id)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
     
-    const combined = shuffleArray([...distractors, target]);
-    
-    setActiveWord(target);
-    setOptions(combined);
-    setYPos(-10); // Start slightly above view
-    setWrongIndex(null);
-    setIsPenalty(false);
+    return {
+      id: Math.random().toString(36).substr(2, 9),
+      word: target,
+      progress: 0,
+      options: shuffleArray([...distractors, target])
+    };
   }, [allUnlockedPool, todayPool, score]);
 
-  const initGame = () => {
+  const startGame = () => {
     setScore(0);
     setLives(2);
-    setSpeed(0.15);
+    setSpeed(0.0008);
+    setBeads([]);
     setGameState("playing");
-    spawnSnake();
+    lastSpawnTime.current = Date.now();
   };
 
-  // The Game Loop
+  // Main Game Loop
   useEffect(() => {
-    if (gameState !== "playing" || !activeWord) return;
+    if (gameState !== "playing") return;
 
-    const frame = () => {
-      setYPos(prev => {
-        const next = prev + speed;
-        if (next >= 100) {
-          // Snake hit the bottom
-          handleMiss();
-          return -10;
+    const update = () => {
+      setBeads(prevBeads => {
+        let newLives = lives;
+        const updated = prevBeads.map(b => ({
+          ...b,
+          progress: b.progress + speed
+        })).filter(b => {
+          if (b.progress >= 1) {
+            // Bead reached the end
+            setLives(l => {
+              const next = l - 1;
+              if (next <= 0) setGameState("gameover");
+              return next;
+            });
+            setFlashRed(true);
+            setTimeout(() => setFlashRed(false), 300);
+            return false;
+          }
+          return true;
+        });
+
+        // Spawning logic
+        const now = Date.now();
+        const timeSinceLast = now - lastSpawnTime.current;
+        const adjustedInterval = Math.max(1500, spawnInterval - (score * 50));
+
+        if (timeSinceLast > adjustedInterval || updated.length === 0) {
+          const newBead = createBead();
+          if (newBead) {
+            lastSpawnTime.current = now;
+            updated.push(newBead);
+          }
         }
-        return next;
+
+        return updated;
       });
-      gameLoopRef.current = requestAnimationFrame(frame);
+
+      gameLoopRef.current = requestAnimationFrame(update);
     };
 
-    gameLoopRef.current = requestAnimationFrame(frame);
+    gameLoopRef.current = requestAnimationFrame(update);
     return () => {
       if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, activeWord, speed]);
+  }, [gameState, speed, score, createBead, lives]);
 
-  const handleMiss = () => {
-    setLives(prev => {
-      const next = prev - 1;
-      if (next <= 0) {
-        setGameState("gameover");
-      }
-      return next;
-    });
-    setFlashRed(true);
-    setTimeout(() => setFlashRed(false), 300);
-    spawnSnake();
-  };
-
-  const handleAnswer = (index: number, isCorrect: boolean) => {
-    if (isPenalty || isCorrect === null) return;
+  const handleAnswer = (beadId: string, isCorrect: boolean) => {
+    if (isPenalty) return;
 
     if (isCorrect) {
-      setScore(prev => {
-        const next = prev + 1;
-        // Progression: Speed up every 5 points
-        if (next % 5 === 0) {
-          setSpeed(s => s + 0.05);
-        }
+      setBeads(prev => prev.filter(b => b.id !== beadId));
+      setScore(s => {
+        const next = s + 1;
+        if (next % 5 === 0) setSpeed(prev => prev + 0.0001);
         onScore(1);
         return next;
       });
-      spawnSnake();
     } else {
-      // Wrong Click: 1s Penalty
-      setWrongIndex(index);
       setIsPenalty(true);
-      setTimeout(() => {
-        setIsPenalty(false);
-        setWrongIndex(null);
-      }, 1000);
+      setTimeout(() => setIsPenalty(false), 1000);
     }
+  };
+
+  // SVG Path calculation
+  const getCoordinates = (progress: number) => {
+    if (!pathRef.current) return { x: 0, y: 0 };
+    const length = pathRef.current.getTotalLength();
+    const point = pathRef.current.getPointAtLength(length * progress);
+    return { x: point.x, y: point.y };
   };
 
   if (!isReady) return null;
 
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
-        <Card className="max-w-xl w-full bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none text-center">
-          <div className="w-24 h-24 bg-emerald-500 rounded-[32px] mx-auto mb-8 flex items-center justify-center border-4 border-white shadow-xl rotate-12">
-             <Zap className="text-white w-12 h-12 fill-white" />
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline overflow-hidden relative">
+         <div className="absolute inset-0 opacity-20">
+            <svg width="100%" height="100%" viewBox="0 0 1000 1000">
+               <path d="M -100 200 Q 300 100 500 400 T 1100 500" fill="none" stroke="white" strokeWidth="2" strokeDasharray="10 10" />
+            </svg>
+         </div>
+        <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[40px] p-12 text-center relative z-10 shadow-2xl">
+          <div className="w-24 h-24 bg-primary rounded-[32px] mx-auto mb-8 flex items-center justify-center shadow-lg transform rotate-12">
+            <Zap className="text-white w-12 h-12 fill-white" />
           </div>
-          <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4 tracking-tight">Arcade Mode</h1>
-          <p className="text-slate-500 mb-10 text-lg font-medium leading-relaxed">
-            Stop the snake before it hits the bottom!<br/>
-            Speed increases every 5 points.
+          <h1 className="text-5xl font-bold text-white mb-6">Word Chain</h1>
+          <p className="text-slate-300 mb-12 text-lg leading-relaxed">
+            Stop the words before they reach the hole!<br/>
+            Speed increases as you master more words.
           </p>
-
-          <div className="space-y-6">
-            <Button 
-              onClick={initGame} 
-              className="w-full chunky-button chunky-primary text-2xl py-10 rounded-[28px]"
-            >
-              START GAME
+          <div className="space-y-4">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl">
+              DEFEND NOW
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-primary py-4">
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white transition-colors">
               Return to Lobby
             </Button>
           </div>
@@ -169,24 +188,22 @@ export function ArcadeMode({
 
   if (gameState === "gameover") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
-        <Card className="max-w-xl w-full bg-white/95 backdrop-blur-md rounded-[48px] p-12 shadow-2xl border-none text-center">
-          <div className="w-20 h-20 bg-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline">
+        <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[48px] p-12 text-center shadow-2xl">
+          <div className="w-20 h-20 bg-rose-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <Skull className="w-10 h-10 text-rose-500" />
           </div>
-          <h1 className="text-4xl font-headline font-bold text-slate-800 mb-8">Game Over</h1>
-          
-          <div className="bg-slate-50 p-10 rounded-[40px] mb-10 shadow-inner border border-slate-100">
-            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Final Score</p>
-            <p className="text-7xl font-bold text-indigo-600 tracking-tighter">{score}</p>
+          <h1 className="text-5xl font-bold text-white mb-10">Defense Failed</h1>
+          <div className="bg-white/5 p-12 rounded-[40px] mb-12 border border-white/10 shadow-inner">
+            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Total Score</p>
+            <p className="text-8xl font-bold text-primary tracking-tighter">{score}</p>
           </div>
-
           <div className="space-y-4">
-            <Button onClick={initGame} className="w-full chunky-button chunky-primary text-xl py-8">
+            <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl">
               TRY AGAIN
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold py-4">
-              RETURN TO LOBBY
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
+              LOBBY
             </Button>
           </div>
         </Card>
@@ -196,61 +213,105 @@ export function ArcadeMode({
 
   return (
     <div className={cn(
-      "fixed inset-0 bg-slate-900 overflow-hidden font-headline transition-colors duration-300",
+      "fixed inset-0 bg-slate-950 overflow-hidden font-headline transition-colors duration-300",
       flashRed && "bg-rose-950"
     )}>
       {/* HUD */}
-      <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-center z-30 pointer-events-none">
+      <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
         <div className="pointer-events-auto">
           <Button 
             variant="ghost" 
             onClick={onBack} 
-            className="bg-white/10 hover:bg-white/20 backdrop-blur rounded-2xl text-white font-bold h-12"
+            className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl text-white font-bold h-12 border border-white/10"
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
           </Button>
         </div>
 
-        <div className="flex gap-4 items-center">
-          <div className="bg-white/10 backdrop-blur px-6 py-3 rounded-2xl border border-white/20 flex gap-2">
+        <div className="flex flex-col items-end gap-4">
+          <div className="bg-white/5 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 flex gap-3 shadow-xl">
             {[...Array(2)].map((_, i) => (
-              <Heart key={i} className={cn("w-7 h-7 transition-all duration-300", i < lives ? "text-rose-500 fill-rose-500" : "text-white/10")} />
+              <Heart key={i} className={cn("w-8 h-8 transition-all duration-500", i < lives ? "text-rose-500 fill-rose-500 scale-110" : "text-white/5 grayscale")} />
             ))}
           </div>
-          <div className="bg-amber-400 text-white px-8 py-3 rounded-2xl shadow-xl border-b-4 border-amber-600 font-bold text-3xl">
+          <div className="bg-primary text-white px-10 py-4 rounded-3xl shadow-2xl border-b-4 border-indigo-800 font-bold text-4xl">
             {score}
           </div>
         </div>
       </div>
 
-      {/* Play Area */}
-      <div className="relative h-full w-full max-w-2xl mx-auto flex flex-col justify-end pb-32">
-        {/* The Falling Snake */}
-        {activeWord && (
-          <div 
-            className="absolute left-1/2 -translate-x-1/2 transition-all duration-75"
-            style={{ top: `${yPos}%` }}
-          >
-            <div className="bg-white px-8 py-4 rounded-[28px] shadow-2xl border-4 border-sky-400 flex items-center gap-4 whitespace-nowrap">
-              <span className="text-3xl">🐍</span>
-              <span className="text-3xl font-bold text-slate-800">{activeWord.english}</span>
-            </div>
-          </div>
-        )}
+      {/* The Zuma Arena */}
+      <div className="absolute inset-0 z-10">
+        <svg width="100%" height="100%" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice" className="opacity-80">
+          {/* Defined Winding Path */}
+          <path 
+            ref={pathRef}
+            id="gamePath"
+            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.05)" 
+            strokeWidth="80" 
+            strokeLinecap="round"
+          />
+          {/* Inner Glow Path */}
+          <path 
+            d="M 50 150 C 400 50, 600 250, 300 350 S 100 550, 400 650 S 900 650, 950 400" 
+            fill="none" 
+            stroke="rgba(99, 102, 241, 0.2)" 
+            strokeWidth="2" 
+            strokeDasharray="10 20"
+          />
+          
+          {/* The Exit Hole */}
+          <circle cx="950" cy="400" r="45" fill="#000" stroke="#ef4444" strokeWidth="4" className="animate-pulse" />
+          <circle cx="950" cy="400" r="20" fill="#ef4444" opacity="0.3" className="animate-ping" />
+        </svg>
 
-        {/* Answer Buttons */}
-        <div className="relative z-20 grid grid-cols-1 gap-4 px-6">
+        {/* Snake Head (Static Origin) */}
+        <div className="absolute top-[110px] left-[20px] z-30 transform -rotate-12 group hover:scale-110 transition-transform">
+           <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.5)]">
+              <span className="text-5xl">🐍</span>
+           </div>
+        </div>
+
+        {/* Active Beads */}
+        {beads.map((bead) => {
+          const coords = getCoordinates(bead.progress);
+          const isFront = bead.id === beads[0]?.id;
+          return (
+            <div 
+              key={bead.id}
+              className={cn(
+                "absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 z-20",
+                isFront ? "scale-110" : "scale-100"
+              )}
+              style={{ left: `${coords.x}px`, top: `${coords.y}px` }}
+            >
+              <div className={cn(
+                "px-6 py-3 rounded-full shadow-2xl border-4 flex items-center gap-3 whitespace-nowrap min-w-[120px] justify-center transition-all",
+                isFront ? "bg-white border-primary scale-110 z-40" : "bg-slate-800/90 border-slate-600 text-slate-300 opacity-60"
+              )}>
+                {isFront && <Zap className="w-4 h-4 text-primary fill-primary animate-pulse" />}
+                <span className="text-xl font-bold tracking-tight">{bead.word.english}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Answer Console */}
+      <div className="absolute bottom-12 inset-x-0 z-50 px-8 max-w-4xl mx-auto">
+        {beads.length > 0 && (
           <div className="grid grid-cols-2 gap-4">
-            {options.map((opt, i) => (
+            {beads[0].options.map((opt, i) => (
               <Button
                 key={i}
                 disabled={isPenalty}
-                onClick={() => handleAnswer(i, opt.id === activeWord?.id)}
+                onClick={() => handleAnswer(beads[0].id, opt.id === beads[0].word.id)}
                 className={cn(
-                  "chunky-button h-20 text-2xl font-bold rounded-3xl transition-all duration-300",
-                  !isPenalty && "bg-white text-slate-800 border-slate-200 hover:scale-105 active:scale-95",
-                  isPenalty && "opacity-50 grayscale cursor-not-allowed",
-                  isPenalty && wrongIndex === i && "bg-rose-500 text-white border-rose-700 opacity-100 grayscale-0 animate-shake"
+                  "h-20 text-2xl font-bold rounded-[28px] transition-all duration-300 border-none shadow-xl",
+                  !isPenalty && "bg-white/10 text-white backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-[1.02] active:scale-95",
+                  isPenalty && "opacity-20 grayscale cursor-not-allowed"
                 )}
                 dir="rtl"
               >
@@ -258,25 +319,18 @@ export function ArcadeMode({
               </Button>
             ))}
           </div>
-          {isPenalty && (
-            <div className="text-center text-rose-400 font-bold animate-pulse uppercase tracking-widest mt-2">
+        )}
+        {isPenalty && (
+          <div className="text-center mt-6 animate-pulse">
+            <span className="bg-rose-500/20 text-rose-400 px-6 py-2 rounded-full border border-rose-500/30 text-sm font-bold uppercase tracking-widest">
               Wait... 1s Penalty!
-            </div>
-          )}
-        </div>
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Danger Zone */}
-      <div className="absolute bottom-0 inset-x-0 h-4 bg-gradient-to-t from-rose-500/50 to-transparent pointer-events-none" />
-      
-      <style jsx global>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-8px); }
-          75% { transform: translateX(8px); }
-        }
-        .animate-shake { animation: shake 0.15s ease-in-out infinite; }
-      `}</style>
+      {/* Danger Zone Glow */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-rose-500/10 rounded-full blur-[100px] pointer-events-none" />
     </div>
   );
 }
