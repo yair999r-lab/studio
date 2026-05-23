@@ -1,25 +1,47 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, SortAsc, LayoutGrid } from "lucide-react";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn } from "@/lib/utils";
 
 export function StudyRoom({ onBack }: { onBack: () => void }) {
   const [search, setSearch] = useState("");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [isSortedAZ, setIsSortedAZ] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
 
-  const allWords = vocabData.weeks.flatMap(w => w.words);
-  const filteredWords = allWords.filter(w => {
-    const matchesWeek = selectedWeek === null || vocabData.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
-    const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
-    return matchesWeek && matchesSearch;
-  });
+  const allWords = useMemo(() => vocabData.weeks.flatMap(w => w.words), []);
+
+  const filteredAndSortedWords = useMemo(() => {
+    let words = allWords.filter(w => {
+      const matchesWeek = selectedWeek === null || vocabData.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
+      const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
+      return matchesWeek && matchesSearch;
+    });
+
+    // Smart Search Priority: Starts with -> Contains
+    const sorted = [...words].sort((a, b) => {
+      const s = search.toLowerCase();
+      if (s) {
+        const aStarts = a.english.toLowerCase().startsWith(s);
+        const bStarts = b.english.toLowerCase().startsWith(s);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+      }
+
+      if (isSortedAZ) {
+        return a.english.localeCompare(b.english);
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [allWords, search, selectedWeek, isSortedAZ]);
 
   const toggleFlip = (id: string) => {
     setFlippedCards(prev => {
@@ -31,78 +53,102 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8 pb-20 max-w-7xl mx-auto">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="rounded-2xl h-12 w-12 hover:bg-slate-100">
-            <ArrowLeft className="w-8 h-8 text-slate-600" />
-          </Button>
-          <div>
-            <h1 className="text-4xl font-headline font-bold text-slate-800">Study Room</h1>
-            <p className="text-slate-500">Brush up on your vocabulary</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <Input 
-              placeholder="Search words..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-11 h-12 rounded-2xl border-2 border-slate-200 focus:border-primary transition-colors bg-white shadow-sm"
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
-            <Button 
-              variant={selectedWeek === null ? "default" : "outline"}
-              onClick={() => setSelectedWeek(null)}
-              className="rounded-xl whitespace-nowrap"
-            >
-              All Weeks
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 pb-20 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-16">
+          <div className="flex items-center gap-6">
+            <Button variant="ghost" size="icon" onClick={onBack} className="rounded-2xl h-14 w-14 bg-white/50 backdrop-blur-sm shadow-sm hover:scale-110 active:scale-95 transition-all">
+              <ArrowLeft className="w-8 h-8 text-slate-600" />
             </Button>
-            {vocabData.weeks.map(w => (
-              <Button 
-                key={w.week_id}
-                variant={selectedWeek === w.week_id ? "default" : "outline"}
-                onClick={() => setSelectedWeek(w.week_id)}
-                className="rounded-xl whitespace-nowrap"
-              >
-                Week {w.week_id}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {filteredWords.map((word) => (
-          <div 
-            key={word.id} 
-            className="card-3d-wrapper h-64 cursor-pointer"
-            onClick={() => toggleFlip(word.id)}
-          >
-            <div className={cn(
-              "card-3d-inner relative w-full h-full",
-              flippedCards.has(word.id) && "flipped"
-            )}>
-              <Card className="card-3d-front flex flex-col items-center justify-center p-6 rounded-[32px] border-2 border-slate-100 shadow-lg bg-white">
-                <span className="text-sm font-bold text-primary uppercase tracking-widest mb-4 bg-primary/10 px-3 py-1 rounded-full">
-                  {word.category}
-                </span>
-                <h3 className="text-4xl font-headline font-bold text-slate-800 text-center">{word.english}</h3>
-                <p className="mt-8 text-slate-400 text-sm italic">Click to flip</p>
-              </Card>
-
-              <Card className="card-3d-back flex flex-col items-center justify-center p-6 rounded-[32px] border-2 border-primary/20 shadow-xl bg-sky-50">
-                <h3 className="text-4xl font-headline font-bold text-primary mb-2" dir="rtl">{word.hebrew}</h3>
-                <p className="text-slate-600 text-center font-medium mt-4">
-                  Vocabulary Mastery
-                </p>
-              </Card>
+            <div>
+              <h1 className="text-4xl font-headline font-bold text-slate-800">בנק מילים</h1>
+              <p className="text-slate-500 font-medium">Vocabulary Mastery</p>
             </div>
           </div>
-        ))}
+
+          <div className="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Input 
+                placeholder="Smart Search..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-11 h-14 rounded-2xl border-none bg-white/90 shadow-lg text-lg focus:ring-2 focus:ring-primary transition-all"
+              />
+            </div>
+            
+            <div className="flex gap-2 w-full md:w-auto">
+              <Button 
+                variant="outline"
+                onClick={() => setIsSortedAZ(!isSortedAZ)}
+                className={cn(
+                  "h-14 rounded-2xl px-6 font-bold shadow-md transition-all flex-1 md:flex-none",
+                  isSortedAZ ? "bg-primary text-white border-primary" : "bg-white/80"
+                )}
+              >
+                <SortAsc className="w-5 h-5 mr-2" /> A-Z
+              </Button>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none">
+                <Button 
+                  variant={selectedWeek === null ? "default" : "outline"}
+                  onClick={() => setSelectedWeek(null)}
+                  className="h-14 rounded-2xl px-6 font-bold shadow-md bg-white/80"
+                >
+                  הכל
+                </Button>
+                {vocabData.weeks.map(w => (
+                  <Button 
+                    key={w.week_id}
+                    variant={selectedWeek === w.week_id ? "default" : "outline"}
+                    onClick={() => setSelectedWeek(w.week_id)}
+                    className="h-14 rounded-2xl px-6 font-bold shadow-md whitespace-nowrap bg-white/80"
+                  >
+                    שבוע {w.week_id}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {filteredAndSortedWords.map((word) => (
+            <div 
+              key={word.id} 
+              className="card-3d-wrapper h-72 cursor-pointer group"
+              onClick={() => toggleFlip(word.id)}
+            >
+              <div className={cn(
+                "card-3d-inner relative w-full h-full",
+                flippedCards.has(word.id) && "flipped"
+              )}>
+                <Card className="card-3d-front flex flex-col items-center justify-center p-8 rounded-[40px] border-none shadow-xl bg-white/95 backdrop-blur-md transition-all group-hover:shadow-2xl">
+                  <span className="text-xs font-bold text-primary uppercase tracking-widest mb-6 bg-primary/10 px-4 py-1.5 rounded-full">
+                    {word.category}
+                  </span>
+                  <h3 className="text-4xl font-headline font-bold text-slate-800 text-center leading-tight">{word.english}</h3>
+                  <div className="mt-auto opacity-30 group-hover:opacity-100 transition-opacity">
+                    <LayoutGrid className="w-6 h-6 text-slate-400" />
+                  </div>
+                </Card>
+
+                <Card className="card-3d-back flex flex-col items-center justify-center p-8 rounded-[40px] border-none shadow-2xl bg-primary text-white">
+                  <h3 className="text-5xl font-headline font-bold mb-4" dir="rtl">{word.hebrew}</h3>
+                  <p className="text-white/70 text-sm font-medium uppercase tracking-widest">
+                    Hebrew Mastery
+                  </p>
+                </Card>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {filteredAndSortedWords.length === 0 && (
+          <div className="text-center py-20 bg-white/50 backdrop-blur rounded-[40px] shadow-inner">
+            <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+            <p className="text-2xl font-bold text-slate-400">No words found match your search.</p>
+          </div>
+        )}
       </div>
     </div>
   );

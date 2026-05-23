@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -9,13 +10,17 @@ import { StoryMode } from "@/components/game/StoryMode";
 import { Onboarding } from "@/components/game/Onboarding";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BookOpen, Sword, Zap, BrainCircuit, Coins, Lock, Info, BookText } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookOpen, Sword, Zap, BrainCircuit, Coins, Lock, Info, BookText, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type GameZone = "lobby" | "study" | "training" | "arcade" | "mistakes" | "story";
+type GameZone = "lobby" | "vocab" | "training" | "arcade" | "mistakes" | "story";
+type MainTab = "study" | "games";
 
 export default function Home() {
   const [currentZone, setCurrentZone] = useState<GameZone>("lobby");
+  const [activeMainTab, setActiveMainTab] = useState<MainTab>("study");
+  
   const { 
     score, 
     mistakes, 
@@ -30,7 +35,7 @@ export default function Home() {
   if (!loaded) return null;
 
   // Zone rendering
-  if (currentZone === "study") return <StudyRoom onBack={() => setCurrentZone("lobby")} />;
+  if (currentZone === "vocab") return <StudyRoom onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "story") return <StoryMode onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "training") return (
     <TrainingGround 
@@ -58,7 +63,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-slate-50 overflow-hidden font-body flex flex-col">
-      {/* Dynamic Floating & Fading Background Orbs */}
+      {/* Decorative Background Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <style>{`
           @keyframes floatAndFade {
@@ -75,107 +80,113 @@ export default function Home() {
         <div className="blob-3 absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-indigo-400 rounded-full blur-[100px]"></div>
       </div>
 
-      <main className="relative z-10 flex-1 max-w-6xl mx-auto w-full px-6 py-12 flex flex-col">
-        <header className="flex items-center justify-between mb-16">
+      <main className="relative z-10 flex-1 max-w-5xl mx-auto w-full px-6 py-12 flex flex-col">
+        <header className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary rounded-[20px] flex items-center justify-center shadow-[0_8px_16px_rgba(59,130,246,0.3)] transition-all duration-300 hover:rotate-6">
+            <div className="w-14 h-14 bg-primary rounded-[22px] flex items-center justify-center shadow-lg transition-all duration-300 hover:rotate-6">
                <Zap className="text-white w-8 h-8 fill-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-headline font-bold text-slate-800 tracking-tight leading-tight">LexiLeap</h1>
-              <p className="text-slate-400 text-sm font-medium">Elevate your English mastery</p>
+              <h1 className="text-3xl font-headline font-bold text-slate-800 tracking-tight">LexiLeap</h1>
+              <p className="text-slate-400 text-sm font-medium">English Mastery</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm pl-3 pr-8 py-3 rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-white">
-            <div className="bg-amber-400 w-10 h-10 rounded-2xl flex items-center justify-center">
-              <Coins className="text-white w-6 h-6 fill-white/20" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Score</p>
-              <p className="text-2xl font-headline font-bold text-slate-800 leading-none">{score.toLocaleString()}</p>
-            </div>
+          <div className="flex items-center gap-3 bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-white">
+            <Coins className="text-amber-500 w-5 h-5 fill-amber-500/20" />
+            <span className="text-xl font-headline font-bold text-slate-800">{score.toLocaleString()}</span>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-            <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-6">
-              <BookOpen className="w-6 h-6 text-sky-500" />
-            </div>
-            <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Study Room</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
-              Flip cards and build your basic vocabulary. Essential for beginners.
-            </p>
-            <Button onClick={() => setCurrentZone("study")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-              ENTER ROOM
-            </Button>
-          </Card>
-
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
-              <Sword className="w-6 h-6 text-indigo-500" />
-            </div>
-            <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Training Ground</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
-              Interactive quizzes across 3 difficulty tiers to solidify your learning.
-            </p>
-            <Button onClick={() => setCurrentZone("training")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-              START DRILLS
-            </Button>
-          </Card>
-
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
-              <Zap className="w-6 h-6 text-emerald-500" />
-            </div>
-            <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Arcade Mode</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
-              Test your reflexes and speed. Pop word bubbles and maintain your combo!
-            </p>
-            <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-              PLAY GAME
-            </Button>
-          </Card>
-
-          <Card className="group flex flex-col rounded-[32px] p-8 border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-            <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
-              <BookText className="w-6 h-6 text-amber-500" />
-            </div>
-            <h3 className="text-xl font-headline font-bold text-slate-800 mb-2">Story Mode</h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8 flex-1">
-              Read an immersive story, explore vocabulary, and take a final exam.
-            </p>
-            <Button onClick={() => setCurrentZone("story")} className="w-full chunky-button chunky-primary text-sm tracking-wide h-12 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer">
-              OPEN STORY
-            </Button>
-          </Card>
+        {/* Tab Selection */}
+        <div className="flex justify-center mb-12">
+          <Tabs value={activeMainTab} onValueChange={(v) => setActiveMainTab(v as MainTab)} className="w-full max-w-md">
+            <TabsList className="grid grid-cols-2 bg-white/50 backdrop-blur shadow-inner p-1 rounded-2xl h-14 border border-white/50">
+              <TabsTrigger 
+                value="study" 
+                className="rounded-xl font-bold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg"
+              >
+                חדר לימוד
+              </TabsTrigger>
+              <TabsTrigger 
+                value="games" 
+                className="rounded-xl font-bold transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg"
+              >
+                משחקים
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        <div className="flex flex-col items-center">
-          <div className="relative w-full max-w-2xl">
-            <button 
-              disabled={!hasEnoughMistakes}
-              onClick={() => setCurrentZone("mistakes")}
-              className={cn(
-                "w-full chunky-button border-b-8 flex items-center justify-center gap-4 py-8 text-xl font-headline transition-all duration-300",
-                hasEnoughMistakes ? "chunky-primary hover:scale-105 hover:shadow-xl active:scale-95 cursor-pointer" : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed opacity-60"
-              )}
-            >
-              <BrainCircuit className={cn("w-8 h-8", hasEnoughMistakes ? "text-white" : "text-slate-400")} />
-              PRACTICE MISTAKES
-              {hasEnoughMistakes && (
-                <span className="absolute -top-3 -right-3 bg-rose-500 text-white text-[10px] px-2.5 py-1 rounded-full border-2 border-white shadow-lg font-bold tracking-tighter uppercase animate-bounce">
-                  READY!
-                </span>
-              )}
-            </button>
-          </div>
-          <p className="mt-6 text-slate-400 text-sm font-medium flex items-center gap-2">
-            {!hasEnoughMistakes && <Lock className="w-3.5 h-3.5" />}
-            {hasEnoughMistakes && <Info className="w-3.5 h-3.5" />}
-            {hasEnoughMistakes ? "Practice your weakest words!" : `Collect at least ${10 - mistakes.length} mistakes to unlock`}
-          </p>
+        {/* Tab Content */}
+        <div className="flex-1">
+          {activeMainTab === "study" ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="group relative flex flex-col rounded-[32px] p-8 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                <div className="w-14 h-14 bg-sky-100 rounded-2xl flex items-center justify-center mb-6">
+                  <BookOpen className="w-7 h-7 text-sky-600" />
+                </div>
+                <h3 className="text-2xl font-headline font-bold text-slate-800 mb-2">כל המילים</h3>
+                <p className="text-slate-500 text-sm mb-8">Vocabulary Bank with smart search.</p>
+                <Button onClick={() => setCurrentZone("vocab")} className="mt-auto chunky-button chunky-primary h-14 rounded-2xl">
+                  פתח בנק מילים
+                </Button>
+              </Card>
+
+              <Card className="group relative flex flex-col rounded-[32px] p-8 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6">
+                  <GraduationCap className="w-7 h-7 text-indigo-600" />
+                </div>
+                <h3 className="text-2xl font-headline font-bold text-slate-800 mb-2">חידון יומי</h3>
+                <p className="text-slate-500 text-sm mb-8">Test your knowledge with mixed drills.</p>
+                <Button onClick={() => setCurrentZone("training")} className="mt-auto chunky-button chunky-primary h-14 rounded-2xl">
+                  התחל חידון
+                </Button>
+              </Card>
+
+              <Card className="group relative flex flex-col rounded-[32px] p-8 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-6">
+                  <BookText className="w-7 h-7 text-amber-600" />
+                </div>
+                <h3 className="text-2xl font-headline font-bold text-slate-800 mb-2">חדר סיפור</h3>
+                <p className="text-slate-500 text-sm mb-8">Read "The Great Auction" and take the exam.</p>
+                <Button onClick={() => setCurrentZone("story")} className="mt-auto chunky-button chunky-primary h-14 rounded-2xl">
+                  קרא סיפור
+                </Button>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <Card className="group relative flex flex-col rounded-[40px] p-10 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center items-center">
+                <div className="w-20 h-20 bg-emerald-100 rounded-[28px] flex items-center justify-center mb-8">
+                  <Zap className="w-10 h-10 text-emerald-600" />
+                </div>
+                <h3 className="text-3xl font-headline font-bold text-slate-800 mb-4">Arcade Mode</h3>
+                <p className="text-slate-500 mb-10">Fast-paced reflexive vocabulary game.</p>
+                <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary h-16 rounded-[28px] text-xl">
+                  שחק עכשיו
+                </Button>
+              </Card>
+
+              <Card className="group relative flex flex-col rounded-[40px] p-10 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center items-center">
+                <div className="w-20 h-20 bg-rose-100 rounded-[28px] flex items-center justify-center mb-8">
+                  <BrainCircuit className="w-10 h-10 text-rose-600" />
+                </div>
+                <h3 className="text-3xl font-headline font-bold text-slate-800 mb-4">Mistakes Review</h3>
+                <p className="text-slate-500 mb-10">Targeted practice for your weakest words.</p>
+                <Button 
+                  disabled={!hasEnoughMistakes}
+                  onClick={() => setCurrentZone("mistakes")}
+                  className={cn(
+                    "w-full chunky-button h-16 rounded-[28px] text-xl",
+                    hasEnoughMistakes ? "chunky-primary" : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed"
+                  )}
+                >
+                  {hasEnoughMistakes ? "תרגל טעויות" : "אסוף 10 טעויות"}
+                </Button>
+              </Card>
+            </div>
+          )}
         </div>
 
         <footer className="mt-auto py-12 text-center text-slate-300 text-xs font-medium">
