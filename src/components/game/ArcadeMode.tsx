@@ -11,7 +11,7 @@ import { cn, shuffleArray } from "@/lib/utils";
 
 type GameState = "ready" | "playing" | "gameover";
 
-const BEAD_DIAMETER = 64; // Matches w-16
+const BEAD_DIAMETER = 64; // Matches Tailwind w-16
 const BASE_SPEED = 0.8;
 const SVG_WIDTH = 1000;
 const SVG_HEIGHT = 600;
@@ -70,7 +70,8 @@ export function ArcadeMode({
   }, [allUnlockedPool, todayPool, score, generateOptions]);
 
   const startGame = () => {
-    const initialChain = Array.from({ length: 10 }, () => addWordToChain());
+    // Initial chain size
+    const initialChain = Array.from({ length: 12 }, () => addWordToChain());
     setWordChain(initialChain);
     setScore(0);
     setLives(2);
@@ -93,8 +94,8 @@ export function ArcadeMode({
       const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
       const nextDistance = prev + BASE_SPEED * speedMultiplier;
 
-      // Fail condition: Lead bead reaches the end
-      if (nextDistance >= pathLength && pathLength > 0) {
+      // Fail condition: Lead bead reaches the end (pathLength)
+      if (pathLength > 0 && nextDistance >= pathLength) {
         setLives(l => {
           const nextLives = l - 1;
           if (nextLives <= 0) setGameState("gameover");
@@ -111,7 +112,8 @@ export function ArcadeMode({
           return newChain;
         });
         
-        return nextDistance - BEAD_DIAMETER; // Prevent cascade jump
+        // Snap head back so the new index 0 is exactly at the exit
+        return pathLength; 
       }
 
       return nextDistance;
@@ -136,11 +138,10 @@ export function ArcadeMode({
       setWordChain(prev => {
         const next = [...prev];
         next.shift(); // Remove leader
-        next.push(addWordToChain()); // Add new tail to keep chain long
+        next.push(addWordToChain()); // Add new tail to keep chain continuous
         return next;
       });
-      // Zuma snap-forward: We DON'T decrement headDistance. 
-      // The new index 0 immediately takes the position of the old index 0.
+      
       setScore(s => {
         const nextScore = s + 1;
         onScore(1);
@@ -161,21 +162,20 @@ export function ArcadeMode({
 
   if (gameState === "ready") {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline relative">
-        <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[40px] p-12 text-center relative z-10 shadow-2xl">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 font-headline relative">
+        <Card className="max-w-xl w-full bg-indigo-950/20 backdrop-blur-xl border-white/10 rounded-[40px] p-12 text-center relative z-10 shadow-2xl">
           <div className="w-24 h-24 bg-primary rounded-[32px] mx-auto mb-8 flex items-center justify-center shadow-lg transform rotate-12">
             <Zap className="text-white w-12 h-12 fill-white" />
           </div>
           <h1 className="text-5xl font-bold text-white mb-6">Word Chain</h1>
-          <p className="text-slate-300 mb-12 text-lg leading-relaxed">
-            Stop the chain before it reaches the exit!<br/>
-            Speed increases every 5 points.
+          <p className="text-slate-400 mb-12 text-lg leading-relaxed">
+            Protect the portal! Translate the leading words <br/> to stop the arcane chain.
           </p>
           <div className="space-y-4">
             <Button onClick={startGame} className="w-full chunky-button chunky-primary h-20 text-2xl rounded-3xl">
               START DEFENSE
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-500 font-bold hover:text-white">
               Return to Lobby
             </Button>
           </div>
@@ -186,21 +186,21 @@ export function ArcadeMode({
 
   if (gameState === "gameover") {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 font-headline">
-        <Card className="max-w-xl w-full bg-white/10 backdrop-blur-xl border-white/20 rounded-[48px] p-12 text-center shadow-2xl">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 font-headline">
+        <Card className="max-w-xl w-full bg-indigo-950/20 backdrop-blur-xl border-white/10 rounded-[48px] p-12 text-center shadow-2xl">
           <div className="w-20 h-20 bg-rose-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <Skull className="w-10 h-10 text-rose-500" />
           </div>
-          <h1 className="text-5xl font-bold text-white mb-10">Defense Failed</h1>
-          <div className="bg-white/5 p-12 rounded-[40px] mb-12 border border-white/10 shadow-inner">
+          <h1 className="text-5xl font-bold text-white mb-10">Portal Breached</h1>
+          <div className="bg-white/5 p-12 rounded-[40px] mb-12 border border-white/5 shadow-inner">
             <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Total Score</p>
-            <p className="text-8xl font-bold text-primary tracking-tighter">{score}</p>
+            <p className="text-8xl font-bold text-indigo-400 tracking-tighter">{score}</p>
           </div>
           <div className="space-y-4">
             <Button onClick={startGame} className="w-full chunky-button chunky-primary h-16 text-xl">
-              TRY AGAIN
+              RETRY
             </Button>
-            <Button variant="ghost" onClick={onBack} className="w-full text-slate-400 font-bold hover:text-white">
+            <Button variant="ghost" onClick={onBack} className="w-full text-slate-500 font-bold hover:text-white">
               LOBBY
             </Button>
           </div>
@@ -212,10 +212,10 @@ export function ArcadeMode({
   return (
     <div className={cn(
       "fixed inset-0 flex flex-col bg-slate-950 overflow-hidden font-headline transition-colors duration-300",
-      flashRed && "bg-rose-950"
+      flashRed && "bg-rose-950/50"
     )}>
       {/* 1. TOP AREA: Game Board */}
-      <div className="flex-1 relative overflow-hidden bg-slate-900/50">
+      <div className="flex-1 relative overflow-hidden bg-slate-950">
         {/* HUD Overlay */}
         <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
           <Button 
@@ -232,7 +232,7 @@ export function ArcadeMode({
                 <Heart key={i} className={cn("w-8 h-8", i < lives ? "text-rose-500 fill-rose-500" : "text-white/5")} />
               ))}
             </div>
-            <div className="bg-primary text-white px-8 py-3 rounded-2xl shadow-xl font-bold text-3xl border-b-4 border-indigo-800">
+            <div className="bg-indigo-600 text-white px-8 py-3 rounded-2xl shadow-xl font-bold text-3xl border-b-4 border-indigo-800">
               {score}
             </div>
           </div>
@@ -244,36 +244,39 @@ export function ArcadeMode({
           preserveAspectRatio="xMidYMid meet" 
           className="w-full h-full absolute inset-0 z-0"
         >
-          {/* Neon Track S-Curve */}
+          {/* Arcane Track - Thick Indigo Background */}
           <path 
             ref={pathRef}
             id="snake-path"
-            d="M -50,150 C 300,150 400,350 700,350 C 950,350 950,550 750,550 L 150,550" 
+            d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
             fill="none" 
-            stroke="#1e293b" 
+            stroke="#1e1b4b" 
             strokeWidth="70" 
             strokeLinecap="round" 
           />
+          {/* Arcane Track - Neon Core */}
           <path 
-            d="M -50,150 C 300,150 400,350 700,350 C 950,350 950,550 750,550 L 150,550" 
+            d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
             fill="none" 
-            stroke="#3f3f46" 
-            strokeWidth="60" 
+            stroke="#8b5cf6" 
+            strokeWidth="4" 
             strokeLinecap="round" 
+            className="opacity-40 animate-pulse"
           />
           
-          {/* Exit Hole */}
-          <g transform="translate(150, 550)">
-            <circle r="50" fill="#09090b" stroke="#3f3f46" strokeWidth="4" />
-            <circle r="40" fill="rgba(239, 68, 68, 0.1)" className="animate-pulse" />
+          {/* Exit Portal */}
+          <g transform="translate(150, 450)">
+            <circle r="50" fill="#020617" stroke="#312e81" strokeWidth="4" />
+            <circle r="40" fill="rgba(139, 92, 246, 0.1)" className="animate-pulse" />
           </g>
         </svg>
 
-        {/* Beads (React Components mapped to SVG path) */}
+        {/* Train-Engine Beads */}
         <div className="absolute inset-0 z-10 pointer-events-none">
           {wordChain.map((bead, index) => {
             const distance = headDistance - (index * BEAD_DIAMETER);
-            if (distance < -50 || distance > pathLength + 50) return null;
+            // Hide if behind start or beyond exit
+            if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
             
             const point = getPoint(distance);
             const isLeader = index === 0;
@@ -295,10 +298,10 @@ export function ArcadeMode({
                 <div className={cn(
                   "w-16 h-16 rounded-full border-4 flex items-center justify-center text-center p-2 shadow-2xl transition-all",
                   isLeader 
-                    ? "bg-indigo-600 border-white shadow-[0_0_20px_rgba(255,255,255,0.6)] scale-110" 
-                    : "bg-slate-700 border-slate-500 opacity-90"
+                    ? "bg-indigo-600 border-white shadow-[0_0_25px_rgba(139,92,246,0.6)] scale-110" 
+                    : "bg-slate-800 border-indigo-900/50 opacity-90"
                 )}>
-                  <span className="font-bold text-white text-[10px] leading-tight break-words">
+                  <span className="font-bold text-white text-[10px] leading-tight break-words uppercase">
                     {bead.english}
                   </span>
                 </div>
@@ -309,7 +312,7 @@ export function ArcadeMode({
       </div>
 
       {/* 2. BOTTOM AREA: Controls */}
-      <div className="h-[35vh] bg-slate-950/95 border-t border-white/10 p-6 flex flex-col justify-center items-center z-50">
+      <div className="h-[35vh] bg-slate-950 border-t border-indigo-900/30 p-6 flex flex-col justify-center items-center z-50">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
@@ -320,7 +323,7 @@ export function ArcadeMode({
                   onClick={() => handleAnswer(opt.id === wordChain[0].id)}
                   className={cn(
                     "h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-3xl transition-all border-none shadow-xl",
-                    !isPenalty && "bg-white/5 text-white hover:bg-white/10 hover:scale-[1.02] active:scale-95",
+                    !isPenalty && "bg-white/5 text-white hover:bg-indigo-600 hover:scale-[1.02] active:scale-95",
                     isPenalty && "opacity-20 grayscale cursor-not-allowed"
                   )}
                   dir="rtl"
@@ -330,8 +333,8 @@ export function ArcadeMode({
               ))}
             </div>
           ) : (
-            <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
-              Preparing Defense...
+            <div className="text-indigo-400 font-bold uppercase tracking-widest animate-pulse">
+              Calibrating Defense Matrix...
             </div>
           )}
           
