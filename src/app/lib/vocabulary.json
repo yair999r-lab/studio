@@ -5,49 +5,174 @@
       "week_id": 7,
       "title": "Week 7",
       "words": [
-        { "id": "w7_d1_1", "day": 1, "english": "Thirds", "hebrew": "שלישי" },
-        { "id": "w7_d1_2", "day": 1, "english": "Ranging", "hebrew": "טווח" },
-        { "id": "w7_d1_3", "day": 1, "english": "Purity", "hebrew": "טהור" },
-        { "id": "w7_d1_4", "day": 1, "english": "View", "hebrew": "מבט" },
-        { "id": "w7_d1_5", "day": 1, "english": "Certainty", "hebrew": "מסויים" },
-        { "id": "w7_d1_6", "day": 1, "english": "Sense", "hebrew": "מובן" },
-        { "id": "w7_d1_7", "day": 1, "english": "Extremely", "hebrew": "קיצוני" },
-        { "id": "w7_d1_8", "day": 1, "english": "Opposed", "hebrew": "מתנגד" },
-        { "id": "w7_d1_9", "day": 1, "english": "Confusion", "hebrew": "בילבול" },
-        { "id": "w7_d1_10", "day": 1, "english": "Proven", "hebrew": "הוכח" },
-
-        { "id": "w7_d2_1", "day": 2, "english": "Convinced", "hebrew": "שכנע" },
-        { "id": "w7_d2_2", "day": 2, "english": "Badly", "hebrew": "בצורה גרועה" },
-        { "id": "w7_d2_3", "day": 2, "english": "Designed", "hebrew": "מעוצב" },
-        { "id": "w7_d2_4", "day": 2, "english": "Pre-prejudiced", "hebrew": "דעות קדומות" },
-        { "id": "w7_d2_5", "day": 2, "english": "Split", "hebrew": "לפצל" },
-        { "id": "w7_d2_6", "day": 2, "english": "Weak", "hebrew": "חלש" },
-        { "id": "w7_d2_7", "day": 2, "english": "Fluently", "hebrew": "ברהיטות" },
-        { "id": "w7_d2_8", "day": 2, "english": "Rather than", "hebrew": "במקום" },
-        { "id": "w7_d2_9", "day": 2, "english": "Resist", "hebrew": "התנגד" },
-        { "id": "w7_d2_10", "day": 2, "english": "Instance", "hebrew": "דוגמא/מופע" },
-
-        { "id": "w7_d3_1", "day": 3, "english": "Flexibility", "hebrew": "גמישות" },
-        { "id": "w7_d3_2", "day": 3, "english": "Processes", "hebrew": "תהליכים" },
-        { "id": "w7_d3_3", "day": 3, "english": "Addition", "hebrew": "בנוסף" },
-        { "id": "w7_d3_4", "day": 3, "english": "Rushing", "hebrew": "ממהר" },
-        { "id": "w7_d3_5", "day": 3, "english": "Rightfully", "hebrew": "בצדק" },
-        { "id": "w7_d3_6", "day": 3, "english": "Acquire", "hebrew": "לרכוש" },
-        { "id": "w7_d3_7", "day": 3, "english": "Attitude", "hebrew": "גישה" },
-        { "id": "w7_d3_8", "day": 3, "english": "Somewhat", "hebrew": "משהו" },
-        { "id": "w7_d3_9", "day": 3, "english": "Apply", "hebrew": "להגיש" },
-        { "id": "w7_d3_10", "day": 3, "english": "Languages", "hebrew": "שפות" },
-
-        { "id": "w7_d4_1", "day": 4, "english": "Population", "hebrew": "אוכלוסיה" },
-        { "id": "w7_d4_2", "day": 4, "english": "Adulthood", "hebrew": "בגרות" },
-        { "id": "w7_d4_3", "day": 4, "english": "Studies", "hebrew": "לימודים" },
-        { "id": "w7_d4_4", "day": 4, "english": "Actually", "hebrew": "למעשה" },
-        { "id": "w7_d4_5", "day": 4, "english": "Fade", "hebrew": "להתפוגג" },
-        { "id": "w7_d4_6", "day": 4, "english": "Suggest", "hebrew": "להציע" },
-        { "id": "w7_d4_7", "day": 4, "english": "Influences", "hebrew": "השפעות" },
-        { "id": "w7_d4_8", "day": 4, "english": "Participants", "hebrew": "משתתפים" },
-        { "id": "w7_d4_9", "day": 4, "english": "Bilingualism", "hebrew": "דו-לשוני" },
-        { "id": "w7_d4_10", "day": 4, "english": "Protect", "hebrew": "להגן" }
+        { "id": "w7_d1_1", "day": 1, "english": "Thirds", "hebrew": "שלישי", "category": "math" },
+        { "id": "w7_d1_2", "day": 1, "english": "Ranging", "hebrew": "טווח", "category": "general" },
+        { "id": "w7_d1_3", "day": 1, "english": "Purity", "hebrew": "טהור", "category": "general" },
+        { "id": "w7_d1_4", "day": 1, "english": "View", "hebrew": "מבט", "category": "general" },
+        { "id": "w7_d1_5", "day": 1, "english": "Certainty", "hebrew": "מסויים", "category": "general" },
+        { "id": "w7_d1_6", "day": 1, "english": "Sense", "hebrew": "מובן", "category": "general" },
+        { "id": "w7_d1_7", "day": 1, "english": "Extremely", "hebrew": "קיצוני", "category": "adverb" },
+        { "id": "w7_d1_8", "day": 1, "english": "Opposed", "hebrew": "מתנגד", "category": "verb" },
+        { "id": "w7_d1_9", "day": 1, "english": "Confusion", "hebrew": "בילבול", "category": "general" },
+        { "id": "w7_d1_10", "day": 1, "english": "Proven", "hebrew": "הוכח", "category": "verb" }
+      ],
+      "sentences": [
+        {
+          "id": "s1",
+          "day": 1,
+          "text_with_blanks": "We divided the pizza into three equal _____.",
+          "translation_hebrew": "חילקנו את הפיצה לשלושה שלישים שווים.",
+          "answers": [
+            { "words": ["Thirds"], "is_correct": true },
+            { "words": ["Ranging"], "is_correct": false },
+            { "words": ["Purity"], "is_correct": false },
+            { "words": ["View"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s2",
+          "day": 1,
+          "text_with_blanks": "The prices in this store are _____ from $10 to $100.",
+          "translation_hebrew": "המחירים בחנות הזו נעים בין 10 ל-100 דולר.",
+          "answers": [
+            { "words": ["Ranging"], "is_correct": true },
+            { "words": ["Certainty"], "is_correct": false },
+            { "words": ["Proven"], "is_correct": false },
+            { "words": ["Thirds"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s3",
+          "day": 1,
+          "text_with_blanks": "The _____ of the drinking water is tested every week.",
+          "translation_hebrew": "טוהר מי השתייה נבדק בכל שבוע.",
+          "answers": [
+            { "words": ["Purity"], "is_correct": true },
+            { "words": ["Sense"], "is_correct": false },
+            { "words": ["Confusion"], "is_correct": false },
+            { "words": ["View"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s4",
+          "day": 1,
+          "text_with_blanks": "I booked a hotel room with a beautiful sea _____.",
+          "translation_hebrew": "הזמנתי חדר במלון עם נוף יפה לים.",
+          "answers": [
+            { "words": ["View"], "is_correct": true },
+            { "words": ["Certainty"], "is_correct": false },
+            { "words": ["Thirds"], "is_correct": false },
+            { "words": ["Purity"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s5",
+          "day": 1,
+          "text_with_blanks": "I can't say with absolute _____ that it will rain tomorrow.",
+          "translation_hebrew": "אני לא יכול לומר בוודאות מוחלטת שירד גשם מחר.",
+          "answers": [
+            { "words": ["Certainty"], "is_correct": true },
+            { "words": ["Sense"], "is_correct": false },
+            { "words": ["Proven"], "is_correct": false },
+            { "words": ["Extremely"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s6",
+          "day": 1,
+          "text_with_blanks": "Animals have a strong _____ of smell.",
+          "translation_hebrew": "לחיות יש חוש ריח חזק.",
+          "answers": [
+            { "words": ["Sense"], "is_correct": true },
+            { "words": ["Confusion"], "is_correct": false },
+            { "words": ["View"], "is_correct": false },
+            { "words": ["Opposed"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s7",
+          "day": 1,
+          "text_with_blanks": "The weather in the desert can be _____ hot.",
+          "translation_hebrew": "מזג האוויר במדבר יכול להיות קיצוני מאוד חם.",
+          "answers": [
+            { "words": ["Extremely"], "is_correct": true },
+            { "words": ["Proven"], "is_correct": false },
+            { "words": ["Thirds"], "is_correct": false },
+            { "words": ["Certainty"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s8",
+          "day": 1,
+          "text_with_blanks": "Most of the citizens strongly _____ the new law.",
+          "translation_hebrew": "רוב האזרחים התנגדו בתוקף לחוק החדש.",
+          "answers": [
+            { "words": ["Opposed"], "is_correct": true },
+            { "words": ["Sense"], "is_correct": false },
+            { "words": ["Ranging"], "is_correct": false },
+            { "words": ["Proven"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s9",
+          "day": 1,
+          "text_with_blanks": "The complicated instructions caused a lot of _____.",
+          "translation_hebrew": "ההוראות המסובכות גרמו להרבה בלבול.",
+          "answers": [
+            { "words": ["Confusion"], "is_correct": true },
+            { "words": ["Certainty"], "is_correct": false },
+            { "words": ["Purity"], "is_correct": false },
+            { "words": ["View"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "s10",
+          "day": 1,
+          "text_with_blanks": "His method has been _____ to be highly effective.",
+          "translation_hebrew": "השיטה שלו הוכחה כמאוד יעילה.",
+          "answers": [
+            { "words": ["Proven"], "is_correct": true },
+            { "words": ["Opposed"], "is_correct": false },
+            { "words": ["Extremely"], "is_correct": false },
+            { "words": ["Sense"], "is_correct": false }
+          ]
+        },
+        {
+          "id": "h1",
+          "day": 1,
+          "text_with_blanks": "למרות הבלבול הראשוני, התיאוריה לבסוף הוכחה.",
+          "answers": [
+            { "words": ["Despite", "the", "initial", "confusion,", "the", "theory", "was", "finally", "proven."], "is_correct": true },
+            { "words": ["Although", "the", "first", "error,", "the", "idea", "is", "now", "shown."], "is_correct": false }
+          ]
+        },
+        {
+          "id": "h2",
+          "day": 1,
+          "text_with_blanks": "המנהל התנגד לתוכנית כי היא הייתה קיצונית מדי.",
+          "answers": [
+            { "words": ["The", "manager", "opposed", "the", "plan", "because", "it", "was", "extremely", "radical."], "is_correct": true },
+            { "words": ["The", "boss", "supported", "the", "idea", "even", "if", "it", "was", "very", "big."], "is_correct": false }
+          ]
+        },
+        {
+          "id": "h3",
+          "day": 1,
+          "text_with_blanks": "מנקודת המבט שלי, זה לא הגיוני.",
+          "answers": [
+            { "words": ["From", "my", "point", "of", "view,", "it", "makes", "no", "sense."], "is_correct": true },
+            { "words": ["In", "my", "own", "way,", "this", "is", "not", "smart."], "is_correct": false }
+          ]
+        },
+        {
+          "id": "h4",
+          "day": 1,
+          "text_with_blanks": "אני יכול לומר בוודאות מלאה.",
+          "answers": [
+            { "words": ["I", "can", "say", "with", "absolute", "certainty."], "is_correct": true },
+            { "words": ["I", "can", "talk", "with", "full", "truth."], "is_correct": false }
+          ]
+        }
       ]
     }
   ]
