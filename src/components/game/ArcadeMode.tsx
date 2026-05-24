@@ -83,11 +83,11 @@ export function ArcadeMode({
     }
   }, [gameState]);
 
-  // CRITICAL FIX: Move side-effects (losing life / game over) into useEffect to avoid render phase updates
+  // Handle life loss and game over condition strictly in useEffect
   useEffect(() => {
     if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
       if (lives > 1) {
-        // Mercy Reset: Player loses one life but the game resets position to prevent chain reaction
+        // Mercy Reset: Player loses one life but the game resets position
         setLives(l => l - 1);
         setFlashRed(true);
         setTimeout(() => setFlashRed(false), 300);
@@ -107,7 +107,8 @@ export function ArcadeMode({
   const animate = useCallback(() => {
     if (gameState !== "playing") return;
 
-    const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
+    // Smooth progression: +4% speed per point scored
+    const speedMultiplier = 1 + (score * 0.04);
     const increment = (BASE_SPEED * 0.4) * speedMultiplier;
     
     setHeadDistance(prev => prev + increment);
@@ -134,10 +135,10 @@ export function ArcadeMode({
         return next;
       });
       
-      setScore(s => {
-        onScore(1);
-        return s + 1;
-      });
+      setScore(s => s + 1);
+      // Parent state update from an event handler is safe
+      onScore(1); 
+      
     } else {
       setIsPenalty(true);
       setTimeout(() => setIsPenalty(false), 1000);
@@ -247,7 +248,7 @@ export function ArcadeMode({
             </filter>
           </defs>
 
-          {/* Arcane Track Styling */}
+          {/* Arcane Track Rendering */}
           <path 
             ref={pathRef}
             d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
@@ -265,11 +266,10 @@ export function ArcadeMode({
             className="opacity-40"
           />
           
-          {/* Word Chain Beads */}
+          {/* Word Chain Beads as SVG elements */}
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
-              // Optimization: Only render beads that are on the screen
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
@@ -279,7 +279,6 @@ export function ArcadeMode({
                 <g 
                   key={bead.instanceId} 
                   transform={`translate(${point.x}, ${point.y})`}
-                  className="transition-opacity duration-300"
                   style={{ opacity: distance < 0 ? 0 : 1 }}
                 >
                   <circle 
@@ -310,7 +309,7 @@ export function ArcadeMode({
         </svg>
       </div>
 
-      {/* Control Panel Area */}
+      {/* Control Panel Area - Fixed Height for Stability */}
       <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50 h-[30vh] overflow-hidden">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
@@ -339,6 +338,7 @@ export function ArcadeMode({
             </div>
           )}
           
+          {/* Reserved Space for Feedback Messaging to Prevent Layout Shift */}
           <div className="h-10 flex items-center justify-center mt-4">
             {isPenalty && (
               <span className="text-rose-400 text-sm font-bold uppercase tracking-widest animate-pulse">
