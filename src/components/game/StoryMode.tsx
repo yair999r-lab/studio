@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, 
-  BookOpen, 
   ChevronRight, 
   GraduationCap, 
   Trophy,
@@ -18,6 +17,7 @@ import {
   XCircle
 } from "lucide-react";
 import vocabData from "@/app/lib/vocabulary.json";
+import storyData from "@/app/lib/story.json";
 import { cn } from "@/lib/utils";
 
 type StoryPhase = "read" | "mcq" | "open" | "summary";
@@ -29,36 +29,28 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswering, setIsAnswering] = useState(false);
   const [mcqScore, setMcqScore] = useState(0);
-  const [openResponses, setOpenResponses] = useState<Record<string, string>>({});
+  const [openResponses, setOpenResponses] = useState<Record<number, string>>({});
 
-  // 1. Daily Time-Lock Logic to find the current story
+  // Defensive selected story logic
   const selectedStory = useMemo(() => {
-    const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
-    const currentWeek = vocabData.weeks.find(w => w.week_id === maxWeekId);
-    if (!currentWeek) return null;
-
-    const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
-    
-    let story;
-    if (today <= 3) {
-      // Sun-Wed: Match today's day
-      story = currentWeek.stories.find(s => s.day === today);
-    } else {
-      // Thu-Sat: Match weekly type
-      story = currentWeek.stories.find(s => s.type === "weekly");
-    }
-
-    // Fallback to the first available story if logic finds nothing
-    return story || currentWeek.stories[0];
+    if (!storyData) return null;
+    return storyData;
   }, []);
 
-  // 2. Vocabulary Mapping for Highlighting
+  // Defensive Vocabulary Mapping for Highlighting
   const vocabMap = useMemo(() => {
     const map = new Map<string, string>();
-    vocabData.weeks.forEach(week => {
-      week.words.forEach(word => {
-        map.set(word.english.toLowerCase(), word.hebrew);
-      });
+    const vocab: any = vocabData;
+    if (!vocab || !vocab.weeks || !Array.isArray(vocab.weeks)) return map;
+
+    vocab.weeks.forEach((week: any) => {
+      if (week && week.words && Array.isArray(week.words)) {
+        week.words.forEach((word: any) => {
+          if (word && word.english && word.hebrew) {
+            map.set(word.english.toLowerCase(), word.hebrew);
+          }
+        });
+      }
     });
     return map;
   }, []);
@@ -92,7 +84,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   };
 
   const handleMcqAnswer = (idx: number, isCorrect: boolean) => {
-    if (isAnswering) return;
+    if (isAnswering || !selectedStory) return;
     setSelectedAnswer(idx);
     setIsAnswering(true);
     
@@ -101,9 +93,9 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     setTimeout(() => {
       setIsAnswering(false);
       setSelectedAnswer(null);
-      if (currentMcqIndex + 1 < selectedStory.mcq_questions.length) {
+      if (currentMcqIndex + 1 < (selectedStory.multiple_choice?.length || 0)) {
         setCurrentMcqIndex(i => i + 1);
-      } else if (selectedStory.open_questions?.length > 0) {
+      } else if ((selectedStory.open_ended?.length || 0) > 0) {
         setPhase("open");
       } else {
         setPhase("summary");
@@ -112,7 +104,8 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   };
 
   const handleNextOpen = () => {
-    if (currentOpenIndex + 1 < selectedStory.open_questions.length) {
+    if (!selectedStory) return;
+    if (currentOpenIndex + 1 < (selectedStory.open_ended?.length || 0)) {
       setCurrentOpenIndex(i => i + 1);
     } else {
       setPhase("summary");
@@ -122,7 +115,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   if (!selectedStory) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-slate-500">No story available for today.</p>
+        <p className="text-slate-500">Loading story...</p>
       </div>
     );
   }
@@ -141,9 +134,13 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
 
           <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md mb-12">
             <div className="prose prose-slate max-w-none">
-              <p className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight whitespace-pre-wrap">
-                {highlightText(selectedStory.content)}
-              </p>
+              <div className="space-y-6">
+                {selectedStory.paragraphs.map((para, i) => (
+                  <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
+                    {highlightText(para)}
+                  </p>
+                ))}
+              </div>
             </div>
           </Card>
 
@@ -162,16 +159,19 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
 
   // Phase 2: MCQ
   if (phase === "mcq") {
-    const q = selectedStory.mcq_questions[currentMcqIndex];
+    const mcqs = selectedStory.multiple_choice || [];
+    const q = mcqs[currentMcqIndex];
+    if (!q) return null;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full">
           <header className="mb-12">
             <div className="flex justify-between items-end mb-4">
-               <span className="text-blue-700 font-bold drop-shadow-sm">Comprehension: {currentMcqIndex + 1} / {selectedStory.mcq_questions.length}</span>
+               <span className="text-blue-700 font-bold drop-shadow-sm">Comprehension: {currentMcqIndex + 1} / {mcqs.length}</span>
                <GraduationCap className="text-blue-400 w-8 h-8" />
             </div>
-            <Progress value={((currentMcqIndex + 1) / selectedStory.mcq_questions.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
+            <Progress value={((currentMcqIndex + 1) / mcqs.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
           </header>
 
           <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md text-center">
@@ -180,7 +180,7 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
             </h2>
 
             <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto">
-              {q.options.map((opt: string, i: number) => {
+              {q.options.map((opt, i) => {
                 const isCorrect = i === q.correct_index;
                 const isSelected = selectedAnswer === i;
                 return (
@@ -213,16 +213,19 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
 
   // Phase 3: Open Questions
   if (phase === "open") {
-    const q = selectedStory.open_questions[currentOpenIndex];
+    const opens = selectedStory.open_ended || [];
+    const q = opens[currentOpenIndex];
+    if (!q) return null;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full">
           <header className="mb-12">
             <div className="flex justify-between items-end mb-4">
-               <span className="text-indigo-700 font-bold drop-shadow-sm">Reflection: {currentOpenIndex + 1} / {selectedStory.open_questions.length}</span>
+               <span className="text-indigo-700 font-bold drop-shadow-sm">Reflection: {currentOpenIndex + 1} / {opens.length}</span>
                <MessageSquareText className="text-indigo-400 w-8 h-8" />
             </div>
-            <Progress value={((currentOpenIndex + 1) / selectedStory.open_questions.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
+            <Progress value={((currentOpenIndex + 1) / opens.length) * 100} className="h-4 bg-white/50 border-none shadow-inner" />
           </header>
 
           <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md">
@@ -234,8 +237,8 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
             </div>
 
             <Textarea 
-              value={openResponses[q.id] || ""}
-              onChange={(e) => setOpenResponses(prev => ({ ...prev, [q.id]: e.target.value }))}
+              value={openResponses[currentOpenIndex] || ""}
+              onChange={(e) => setOpenResponses(prev => ({ ...prev, [currentOpenIndex]: e.target.value }))}
               placeholder="Type your answer here..."
               className="min-h-[200px] rounded-[32px] p-8 text-lg bg-slate-50 border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none shadow-inner"
             />
@@ -243,10 +246,10 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
             <div className="mt-12 flex justify-center">
               <Button 
                 onClick={handleNextOpen}
-                disabled={!openResponses[q.id]?.trim()}
+                disabled={!openResponses[currentOpenIndex]?.trim()}
                 className="chunky-button chunky-primary px-16 py-8 text-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {currentOpenIndex + 1 < selectedStory.open_questions.length ? "NEXT QUESTION" : "FINISH STORY"}
+                {currentOpenIndex + 1 < opens.length ? "NEXT QUESTION" : "FINISH STORY"}
               </Button>
             </div>
           </Card>
@@ -267,16 +270,17 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
         
         <div className="bg-blue-50 p-8 rounded-[32px] mb-10 border border-blue-100">
           <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-1">Comprehension Score</p>
-          <p className="text-5xl font-bold text-blue-700">{mcqScore} / {selectedStory.mcq_questions.length}</p>
+          <p className="text-5xl font-bold text-blue-700">{mcqScore} / {(selectedStory.multiple_choice?.length || 0)}</p>
         </div>
 
         <Button 
           onClick={onBack} 
           className="w-full chunky-button chunky-primary py-8 text-xl shadow-md transition-all hover:scale-105 active:scale-95"
         >
-          BACK TO STUDY ROOM
+          BACK TO LOBBY
         </Button>
       </Card>
     </div>
   );
 }
+
