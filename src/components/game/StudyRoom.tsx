@@ -17,20 +17,24 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
 
   const allWords = useMemo(() => {
-    return filteredVocab.weeks.flatMap(w => w.words);
+    const vocab: any = filteredVocab;
+    if (!vocab || !vocab.weeks) return [];
+    return vocab.weeks.flatMap((w: any) => w.words || []);
   }, [filteredVocab]);
 
   const filteredAndSortedWords = useMemo(() => {
+    const vocab: any = filteredVocab;
+    if (!vocab || !vocab.weeks || !allWords) return [];
+
     let words = allWords.filter(w => {
-      // Check if word belongs to selected week (if any week filter is active)
+      const week = vocab.weeks.find((week: any) => week.week_id === selectedWeek);
       const belongsToSelectedWeek = selectedWeek === null || 
-        filteredVocab.weeks.find(week => week.week_id === selectedWeek)?.words.some(word => word.id === w.id);
+        (week && week.words && week.words.some((word: any) => word.id === w.id));
       
       const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
       return belongsToSelectedWeek && matchesSearch;
     });
 
-    // Smart Search Priority: Starts with -> Contains
     const sorted = [...words].sort((a, b) => {
       const s = search.toLowerCase();
       if (s) {
@@ -58,7 +62,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
     });
   };
 
-  if (!isReady) {
+  if (!isReady || !filteredVocab || !filteredVocab.weeks) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

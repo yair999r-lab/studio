@@ -48,13 +48,13 @@ export function TrainingGround({
   const [isAnswering, setIsAnswering] = useState(false);
   const [sessionResults, setSessionResults] = useState({ correct: 0, wrong: 0 });
 
-  // Load Review Mode questions if applicable
   useEffect(() => {
-    if (isReviewMode && mistakePool && questions.length === 0 && isReady) {
+    const vocab: any = filteredVocab;
+    if (isReviewMode && mistakePool && questions.length === 0 && isReady && vocab?.weeks) {
       const generated = mistakePool.map(word => {
-        const allWords = filteredVocab.weeks.flatMap(w => w.words);
+        const allWords = vocab.weeks.flatMap((w: any) => w.words || []);
         const distractors = allWords
-          .filter(w => w.id !== word.id)
+          .filter((w: any) => w.id !== word.id)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3);
         const options = shuffleArray([...distractors, word]);
@@ -72,22 +72,24 @@ export function TrainingGround({
   }, [isReviewMode, mistakePool, questions.length, isReady, filteredVocab]);
 
   const startSession = () => {
+    const vocab: any = filteredVocab;
+    if (!vocab || !vocab.weeks) return;
+
     const activeWeeks = selectedWeek === null 
-      ? filteredVocab.weeks 
-      : filteredVocab.weeks.filter(w => w.week_id === selectedWeek);
+      ? vocab.weeks 
+      : vocab.weeks.filter((w: any) => w.week_id === selectedWeek);
     
-    const poolWords = activeWeeks.flatMap(w => w.words);
-    const poolSentences = activeWeeks.flatMap(w => w.sentences);
+    const poolWords = activeWeeks.flatMap((w: any) => w.words || []);
+    const poolSentences = activeWeeks.flatMap((w: any) => w.sentences || []);
     
     if (poolWords.length === 0) return;
 
     const generated: Question[] = [];
 
-    // Level 1: Word Translation (5 Questions)
     const level1Words = shuffleArray(poolWords).slice(0, 5);
-    level1Words.forEach(word => {
+    level1Words.forEach((word: any) => {
       const distractors = poolWords
-        .filter(w => w.id !== word.id)
+        .filter((w: any) => w.id !== word.id)
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
       const options = shuffleArray([...distractors, word]);
@@ -101,48 +103,45 @@ export function TrainingGround({
       });
     });
 
-    // Level 2: Sentence Choice - 1 Word (3 Questions)
     const level2Sentences = poolSentences
-      .filter(s => s.answers.find(a => a.is_correct)?.words.length === 1)
+      .filter((s: any) => s.answers.find((a: any) => a.is_correct)?.words.length === 1)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
     
-    level2Sentences.forEach(s => {
+    level2Sentences.forEach((s: any) => {
       generated.push({
         type: "sentence_choice",
         level: 2,
         text: s.text_with_blanks,
         hint: s.translation_hebrew,
         options: shuffleArray(s.answers),
-        answer: s.answers.find(a => a.is_correct)?.words.join(' ') || "",
+        answer: s.answers.find((a: any) => a.is_correct)?.words.join(' ') || "",
         sentenceId: s.id
       });
     });
 
-    // Level 3: Sentence Choice - 2 Words (2 Questions)
     const level3Sentences = poolSentences
-      .filter(s => s.answers.find(a => a.is_correct)?.words.length === 2)
+      .filter((s: any) => s.answers.find((a: any) => a.is_correct)?.words.length === 2)
       .sort(() => Math.random() - 0.5)
       .slice(0, 2);
     
-    level3Sentences.forEach(s => {
+    level3Sentences.forEach((s: any) => {
       generated.push({
         type: "sentence_choice",
         level: 3,
         text: s.text_with_blanks,
         options: shuffleArray(s.answers),
-        answer: s.answers.find(a => a.is_correct)?.words.join(' / ') || "",
+        answer: s.answers.find((a: any) => a.is_correct)?.words.join(' / ') || "",
         sentenceId: s.id
       });
     });
 
-    // If we don't have enough sentences, fill with more Level 1
     while (generated.length < 10 && poolWords.length > generated.length) {
-      const remaining = poolWords.filter(w => !generated.find(q => q.wordId === w.id));
+      const remaining = poolWords.filter((w: any) => !generated.find(q => q.wordId === w.id));
       if (remaining.length === 0) break;
       const word = remaining[0];
       const distractors = poolWords
-        .filter(w => w.id !== word.id)
+        .filter((w: any) => w.id !== word.id)
         .sort(() => Math.random() - 0.5)
         .slice(0, 3);
       generated.push({
@@ -168,18 +167,19 @@ export function TrainingGround({
     setIsAnswering(true);
 
     const q = questions[currentIndex];
+    const vocab: any = filteredVocab;
+
     if (isCorrect) {
       setSessionResults(prev => ({ ...prev, correct: prev.correct + 1 }));
       if (q.wordId) onCorrect(q.wordId);
     } else {
       setSessionResults(prev => ({ ...prev, wrong: prev.wrong + 1 }));
-      if (q.wordId) {
-        const fullWord = filteredVocab.weeks.flatMap(w => w.words).find(w => w.id === q.wordId);
+      if (q.wordId && vocab?.weeks) {
+        const fullWord = vocab.weeks.flatMap((w: any) => w.words || []).find((w: any) => w.id === q.wordId);
         if (fullWord) onWrong(fullWord);
       }
     }
 
-    // Wait 1.5 seconds then move to next or summary
     setTimeout(() => {
       setIsAnswering(false);
       setSelectedAnswer(null);
@@ -191,9 +191,10 @@ export function TrainingGround({
     }, 1500);
   };
 
-  if (!isReady) return null;
+  if (!isReady || !filteredVocab) return null;
 
   if (phase === "setup") {
+    const vocab: any = filteredVocab;
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl bg-white/95 backdrop-blur-md rounded-[40px] p-10 shadow-2xl border-none">
@@ -213,7 +214,7 @@ export function TrainingGround({
                   onClick={() => setSelectedWeek(null)}
                   className="rounded-xl px-6 py-6 font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
                 >Daily Selection</Button>
-                {filteredVocab.weeks.map(w => (
+                {vocab?.weeks?.map((w: any) => (
                   <Button 
                     key={w.week_id}
                     variant={selectedWeek === w.week_id ? "default" : "outline"}
@@ -317,7 +318,7 @@ export function TrainingGround({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none text-center">
+      <div className="w-full max-xl bg-white/95 backdrop-blur-md rounded-[40px] p-12 shadow-2xl border-none text-center">
         <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 animate-bounce" />
         <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">{isReviewMode ? "Review Complete!" : "Quiz Complete!"}</h1>
         <p className="text-slate-500 text-lg mb-10 font-medium">You're making great progress today.</p>

@@ -36,22 +36,26 @@ export function ArcadeMode({
   const requestRef = useRef<number | null>(null);
   const [pathLength, setPathLength] = useState(0);
 
-  const todayPool = useMemo(() => {
-    return filteredVocab?.weeks?.flatMap(w => w.words) || [];
+  const allUnlockedPool = useMemo(() => {
+    const vocab: any = filteredVocab;
+    if (!vocab || !vocab.weeks) return [];
+    return vocab.weeks.flatMap((w: any) => w.words || []);
   }, [filteredVocab]);
 
-  const allUnlockedPool = useMemo(() => {
-    if (!vocabData?.weeks) return todayPool;
-    try {
-      const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
-      const pastWords = vocabData.weeks
-        .filter(w => w.week_id < maxWeekId)
-        .flatMap(w => w.words);
-      return [...pastWords, ...todayPool];
-    } catch (e) {
-      return todayPool;
+  const todayPool = useMemo(() => {
+    const vocab: any = filteredVocab;
+    if (vocab?.weeks) return vocab.weeks.flatMap((w: any) => w.words || []);
+    if (vocab?.words) return vocab.words;
+    if (Array.isArray(vocab)) return vocab;
+    
+    const data: any = vocabData;
+    if (data?.weeks?.length > 0) {
+      const latestWeek = data.weeks[data.weeks.length - 1];
+      return latestWeek.words || [];
     }
-  }, [todayPool]);
+    
+    return [];
+  }, [filteredVocab]);
 
   const generateOptions = useCallback((target: any) => {
     const currentPool = score >= 10 ? allUnlockedPool : todayPool;
@@ -92,21 +96,17 @@ export function ArcadeMode({
     }
   }, [gameState]);
 
-  // Handle life loss and game over condition strictly in useEffect
   useEffect(() => {
     if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
       if (lives > 1) {
-        // Mercy Reset: Player loses one life but the game resets position
         setLives(l => l - 1);
         setFlashRed(true);
         setTimeout(() => setFlashRed(false), 300);
         
-        // Reset the chain and distance to clear the track
         const newChain = Array.from({ length: 15 }, () => addWordToChain()).filter(Boolean);
         setWordChain(newChain);
         setHeadDistance(0);
       } else {
-        // Last life lost
         setLives(0);
         setGameState("gameover");
       }
@@ -116,7 +116,6 @@ export function ArcadeMode({
   const animate = useCallback(() => {
     if (gameState !== "playing") return;
 
-    // Smooth progression: +4% speed per point scored
     const speedMultiplier = 1 + (score * 0.04);
     const increment = (BASE_SPEED * 0.4) * speedMultiplier;
     
@@ -164,7 +163,7 @@ export function ArcadeMode({
     }
   };
 
-  if (!isReady) return null;
+  if (!isReady || !filteredVocab) return null;
 
   if (gameState === "ready") {
     return (
@@ -257,7 +256,6 @@ export function ArcadeMode({
             </filter>
           </defs>
 
-          {/* Arcane Track Rendering */}
           <path 
             ref={pathRef}
             d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
@@ -275,7 +273,6 @@ export function ArcadeMode({
             className="opacity-40"
           />
           
-          {/* Word Chain Beads as SVG elements */}
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
@@ -310,7 +307,6 @@ export function ArcadeMode({
             })}
           </g>
 
-          {/* Portal / End Hole */}
           <g transform="translate(150, 450)">
             <circle r="55" fill="#020617" />
             <circle r="44" fill="none" stroke="#4338ca" strokeWidth="2" strokeDasharray="5,5" className="animate-spin" style={{ animationDuration: '10s' }} />
@@ -318,7 +314,6 @@ export function ArcadeMode({
         </svg>
       </div>
 
-      {/* Control Panel Area - Fixed Height for Stability */}
       <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50 h-[30vh] overflow-hidden">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
@@ -347,7 +342,6 @@ export function ArcadeMode({
             </div>
           )}
           
-          {/* Reserved Space for Feedback Messaging to Prevent Layout Shift */}
           <div className="h-10 flex items-center justify-center mt-4">
             {isPenalty && (
               <span className="text-rose-400 text-sm font-bold uppercase tracking-widest animate-pulse">
