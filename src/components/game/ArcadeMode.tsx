@@ -38,20 +38,20 @@ export function ArcadeMode({
 
   const allUnlockedPool = useMemo(() => {
     const vocab: any = filteredVocab;
-    if (!vocab || !vocab.weeks) return [];
-    return vocab.weeks.flatMap((w: any) => w.words || []);
+    if (!vocab || !vocab.weeks || !Array.isArray(vocab.weeks)) return [];
+    return vocab.weeks.flatMap((w: any) => w?.words || []);
   }, [filteredVocab]);
 
   const todayPool = useMemo(() => {
     const vocab: any = filteredVocab;
-    if (vocab?.weeks) return vocab.weeks.flatMap((w: any) => w.words || []);
-    if (vocab?.words) return vocab.words;
-    if (Array.isArray(vocab)) return vocab;
+    if (vocab?.weeks && Array.isArray(vocab.weeks)) {
+      return vocab.weeks.flatMap((w: any) => w?.words || []);
+    }
     
-    const data: any = vocabData;
-    if (data?.weeks?.length > 0) {
-      const latestWeek = data.weeks[data.weeks.length - 1];
-      return latestWeek.words || [];
+    // Fallback to raw data if hooks aren't ready
+    if (vocabData?.weeks && Array.isArray(vocabData.weeks)) {
+      const latestWeek = vocabData.weeks[vocabData.weeks.length - 1];
+      return latestWeek?.words || [];
     }
     
     return [];
@@ -96,6 +96,7 @@ export function ArcadeMode({
     }
   }, [gameState]);
 
+  // Defensive lifecycle for collision and life-loss
   useEffect(() => {
     if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
       if (lives > 1) {
@@ -103,6 +104,7 @@ export function ArcadeMode({
         setFlashRed(true);
         setTimeout(() => setFlashRed(false), 300);
         
+        // Mercy Reset: New chain and restart position
         const newChain = Array.from({ length: 15 }, () => addWordToChain()).filter(Boolean);
         setWordChain(newChain);
         setHeadDistance(0);
@@ -145,6 +147,7 @@ export function ArcadeMode({
       });
       
       setScore(s => s + 1);
+      // Firing callback safely from an event handler
       onScore(1); 
       
     } else {

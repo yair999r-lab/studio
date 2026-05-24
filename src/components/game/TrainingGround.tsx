@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Trophy, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
 import { cn, shuffleArray } from "@/lib/utils";
 import type { Mistake } from "@/hooks/use-game-state";
@@ -39,7 +39,6 @@ export function TrainingGround({
   const isReviewMode = !!mistakePool;
   
   const [phase, setPhase] = useState<"setup" | "active" | "summary">(isReviewMode ? "active" : "setup");
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,7 +49,7 @@ export function TrainingGround({
 
   useEffect(() => {
     const vocab: any = filteredVocab;
-    if (isReviewMode && mistakePool && questions.length === 0 && isReady && vocab?.weeks) {
+    if (isReviewMode && mistakePool && questions.length === 0 && isReady && vocab?.weeks && Array.isArray(vocab.weeks)) {
       const generated = mistakePool.map(word => {
         const allWords = vocab.weeks.flatMap((w: any) => w.words || []);
         const distractors = allWords
@@ -73,14 +72,14 @@ export function TrainingGround({
 
   const startSession = () => {
     const vocab: any = filteredVocab;
-    if (!vocab || !vocab.weeks) return;
+    if (!vocab || !vocab.weeks || !Array.isArray(vocab.weeks)) return;
 
     const activeWeeks = selectedWeek === null 
       ? vocab.weeks 
       : vocab.weeks.filter((w: any) => w.week_id === selectedWeek);
     
-    const poolWords = activeWeeks.flatMap((w: any) => w.words || []);
-    const poolSentences = activeWeeks.flatMap((w: any) => w.sentences || []);
+    const poolWords = activeWeeks.flatMap((w: any) => Array.isArray(w.words) ? w.words : []);
+    const poolSentences = activeWeeks.flatMap((w: any) => Array.isArray(w.sentences) ? w.sentences : []);
     
     if (poolWords.length === 0) return;
 
@@ -104,7 +103,7 @@ export function TrainingGround({
     });
 
     const level2Sentences = poolSentences
-      .filter((s: any) => s.answers.find((a: any) => a.is_correct)?.words.length === 1)
+      .filter((s: any) => Array.isArray(s.answers) && s.answers.find((a: any) => a.is_correct)?.words.length === 1)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
     
@@ -121,7 +120,7 @@ export function TrainingGround({
     });
 
     const level3Sentences = poolSentences
-      .filter((s: any) => s.answers.find((a: any) => a.is_correct)?.words.length === 2)
+      .filter((s: any) => Array.isArray(s.answers) && s.answers.find((a: any) => a.is_correct)?.words.length === 2)
       .sort(() => Math.random() - 0.5)
       .slice(0, 2);
     

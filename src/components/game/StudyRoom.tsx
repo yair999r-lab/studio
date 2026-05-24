@@ -18,18 +18,18 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
 
   const allWords = useMemo(() => {
     const vocab: any = filteredVocab;
-    if (!vocab || !vocab.weeks) return [];
-    return vocab.weeks.flatMap((w: any) => w.words || []);
+    if (!vocab || !vocab.weeks || !Array.isArray(vocab.weeks)) return [];
+    return vocab.weeks.flatMap((w: any) => w?.words || []);
   }, [filteredVocab]);
 
   const filteredAndSortedWords = useMemo(() => {
     const vocab: any = filteredVocab;
-    if (!vocab || !vocab.weeks || !allWords) return [];
+    if (!vocab || !vocab.weeks || !Array.isArray(vocab.weeks) || !allWords) return [];
 
     let words = allWords.filter(w => {
       const week = vocab.weeks.find((week: any) => week.week_id === selectedWeek);
       const belongsToSelectedWeek = selectedWeek === null || 
-        (week && week.words && week.words.some((word: any) => word.id === w.id));
+        (week && week.words && Array.isArray(week.words) && week.words.some((word: any) => word.id === w.id));
       
       const matchesSearch = w.english.toLowerCase().includes(search.toLowerCase()) || w.hebrew.includes(search);
       return belongsToSelectedWeek && matchesSearch;
@@ -62,7 +62,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
     });
   };
 
-  if (!isReady || !filteredVocab || !filteredVocab.weeks) {
+  if (!isReady || !filteredVocab || !filteredVocab.weeks || !Array.isArray(filteredVocab.weeks)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -113,7 +113,7 @@ export function StudyRoom({ onBack }: { onBack: () => void }) {
               >
                 All
               </Button>
-              {filteredVocab.weeks.map(w => (
+              {filteredVocab.weeks.map((w: any) => (
                 <Button 
                   key={w.week_id}
                   variant={selectedWeek === w.week_id ? "default" : "outline"}

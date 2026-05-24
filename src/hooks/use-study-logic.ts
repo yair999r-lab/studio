@@ -11,10 +11,15 @@ import vocabData from '@/app/lib/vocabulary.json';
  * - Current week is sliced into daily chunks (0-9, 10-19, etc.).
  */
 export function useStudyLogic() {
-  const [filteredVocab, setFilteredVocab] = useState(vocabData);
+  const [filteredVocab, setFilteredVocab] = useState<any>(vocabData);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    if (!vocabData || !vocabData.weeks || !Array.isArray(vocabData.weeks)) {
+      setIsReady(true);
+      return;
+    }
+
     const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
     const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
 
@@ -25,7 +30,7 @@ export function useStudyLogic() {
       }
 
       // Current Active Week chunking logic
-      const words = [...week.words];
+      const words = Array.isArray(week.words) ? [...week.words] : [];
       let slicedWords;
 
       if (today === 0) {

@@ -10,13 +10,8 @@ import {
   ArrowLeft, 
   Trophy, 
   Lock, 
-  CheckCircle2, 
   Calendar, 
-  Sparkles,
-  Zap,
-  Clock,
-  LayoutGrid,
-  BrainCircuit
+  Sparkles
 } from "lucide-react";
 import vocabData from "@/app/lib/vocabulary.json";
 import { cn, shuffleArray } from "@/lib/utils";
@@ -35,7 +30,6 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   const [activeTab, setActiveTab] = useState<TabSection>("daily");
   const [selectedMode, setSelectedMode] = useState<{ dayId: number | null; isMastery: boolean } | null>(null);
   
-  // Gameplay State
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
@@ -43,8 +37,6 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   const [feedback, setFeedback] = useState<{ id: string; type: "correct" | "wrong" } | null>(null);
   const [mistakes, setMistakes] = useState(0);
 
-  // 1. Time-Lock Logic
-  // Sunday is 0, Monday is 1, Tuesday is 2, Wednesday is 3
   const today = new Date().getDay(); 
   const isWednesdayOrLater = today >= 3; 
 
@@ -55,19 +47,18 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
     { id: 4, label: "Day 4", sub: "Wednesday", dayOfWeek: 3 },
   ], []);
 
-  // 2. Data Filtering from vocabulary.json
   const allWordsForSession = useMemo(() => {
     if (!selectedMode) return [];
     
-    // Using the raw JSON data for the current week (assumed to be the data in vocabData)
-    const words = vocabData.words;
+    const vocab: any = vocabData;
+    const words = vocab.weeks && Array.isArray(vocab.weeks) 
+      ? vocab.weeks[0].words 
+      : (vocab.words || []);
 
     if (selectedMode.isMastery) {
-      // Mastery Hub loads all words (Days 1-4)
       return words; 
     } else {
-      // Daily Focus loads strictly its 10 unique words
-      return words.filter(w => w.day === selectedMode.dayId);
+      return words.filter((w: any) => w.day === selectedMode.dayId);
     }
   }, [selectedMode]);
 
@@ -86,12 +77,9 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   }, [allWordsForSession]);
 
   const currentChunk = chunks[currentChunkIndex] || [];
-  
-  // Columns are independently shuffled whenever the chunk changes
   const leftColumn = useMemo(() => shuffleArray([...currentChunk]), [currentChunk]);
   const rightColumn = useMemo(() => shuffleArray([...currentChunk]), [currentChunk]);
 
-  // 3. Match Mechanics
   useEffect(() => {
     if (selectedLeft && selectedRight) {
       if (selectedLeft === selectedRight) {
@@ -114,7 +102,6 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
     }
   }, [selectedLeft, selectedRight]);
 
-  // Wave Progression
   useEffect(() => {
     const wordsInChunk = currentChunk.length;
     const matchedInChunk = currentChunk.filter(w => matchedIds.has(w.id)).length;
@@ -208,7 +195,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     </div>
                     <h3 className="text-3xl font-headline font-bold mb-2">Weekly Mastery</h3>
                     <p className={cn("mb-10", isWednesdayOrLater ? "text-white/70" : "text-slate-400")}>
-                        Challenge yourself with all 40 words from this week. Prepares you for the final exam.
+                        Challenge yourself with all words from this week. Prepares you for the final exam.
                         {!isWednesdayOrLater && <span className="block mt-2 font-bold text-slate-500 underline underline-offset-4 decoration-rose-400/50">Unlocks on Wednesday</span>}
                     </p>
                     <Button disabled={!isWednesdayOrLater} className="w-full h-16 bg-white text-indigo-600 font-bold text-xl rounded-3xl hover:bg-white/90">
@@ -241,7 +228,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     {selectedMode?.isMastery ? "Whole Week Challenge" : `Day ${selectedMode?.dayId} Focus`}
                  </span>
               </div>
-              <Progress value={(matchedIds.size / allWordsForSession.length) * 100} className="h-3 bg-white/5" />
+              <Progress value={allWordsForSession.length > 0 ? (matchedIds.size / allWordsForSession.length) * 100 : 0} className="h-3 bg-white/5" />
             </div>
             <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
                <span className="text-white/40 text-xs uppercase font-bold mr-3">Mistakes</span>
@@ -250,7 +237,6 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
           </header>
 
           <main className="grid grid-cols-2 gap-8 min-h-[500px]">
-            {/* Left Column: English Tiles */}
             <div className="space-y-4">
               {leftColumn.map((item) => {
                 const isMatched = matchedIds.has(item.id);
@@ -277,7 +263,6 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
               })}
             </div>
 
-            {/* Right Column: Hebrew Tiles */}
             <div className="space-y-4">
               {rightColumn.map((item) => {
                 const isMatched = matchedIds.has(item.id);
