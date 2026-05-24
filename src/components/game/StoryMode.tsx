@@ -43,14 +43,14 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
   const vocabMap = useMemo(() => {
     const map = new Map<string, string>();
     const vocab: any = vocabData;
-    if (!vocab?.weeks) return map;
+    if (!vocab || !vocab.weeks) return map;
     vocab.weeks.forEach((week: any) => {
       week.words?.forEach((word: any) => {
         map.set(word.english.toLowerCase(), word.hebrew);
       });
     });
     return map;
-  }, []);
+  }, [vocabData]);
 
   const highlightText = (text: string) => {
     const words = text.split(/(\s+)/);
@@ -180,19 +180,30 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full">
-          <header className="mb-12 text-center">
-            <span className="text-primary font-bold uppercase tracking-widest text-sm mb-2 block">
-              {phase === "vocab_qa" ? "Vocabulary Context" : "Story Comprehension"}
-            </span>
-            <Progress value={((currentQIndex + 1) / currentQuestions.length) * 100} className="h-4 bg-white/50" />
+          <header className="flex items-center gap-8 mb-12">
+            <Button 
+              variant="ghost" 
+              onClick={() => setPhase("selector")} 
+              className="bg-white/50 hover:bg-white/80 rounded-2xl h-12 shadow-sm border border-slate-200 text-slate-600 font-bold"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
+            </Button>
+            <div className="flex-1">
+              <div className="text-center">
+                <span className="text-primary font-bold uppercase tracking-widest text-sm mb-2 block">
+                  {phase === "vocab_qa" ? "Vocabulary Context" : "Story Comprehension"}
+                </span>
+                <Progress value={((currentQIndex + 1) / (currentQuestions?.length || 1)) * 100} className="h-4 bg-white/50" />
+              </div>
+            </div>
           </header>
 
           <Card className="p-12 rounded-[40px] shadow-2xl bg-white/95">
             <h2 className="text-3xl font-headline font-bold text-slate-800 mb-12 text-center">
-              {q.question}
+              {q?.question}
             </h2>
             <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto">
-              {q.options.map((opt: string, i: number) => {
+              {q?.options.map((opt: string, i: number) => {
                 const isCorrect = i === q.correct_index;
                 const isSelected = selectedAnswer === i;
                 return (
@@ -231,3 +242,4 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
     </div>
   );
 }
+

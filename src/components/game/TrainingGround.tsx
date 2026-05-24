@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
@@ -33,7 +33,6 @@ export function TrainingGround({
 }) {
   const { filteredVocab, isReady } = useStudyLogic();
   const [phase, setPhase] = useState<"selector" | "active" | "summary">(!!mistakePool ? "active" : "selector");
-  const [selectedDayId, setSelectedDayId] = useState<number | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -171,21 +170,30 @@ export function TrainingGround({
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-200 p-8 flex flex-col items-center">
         <div className="max-w-4xl w-full">
-          <header className="mb-12">
-            <div className="flex justify-between items-end mb-4">
-               <span className="text-primary font-bold">Progress: {currentIndex + 1} / {questions.length}</span>
-               <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">Level {q.level}</span>
+          <header className="flex items-center gap-8 mb-12">
+            <Button 
+              variant="ghost" 
+              onClick={() => setPhase("selector")} 
+              className="bg-white/50 hover:bg-white/80 rounded-2xl h-12 shadow-sm border border-slate-200 text-slate-600 font-bold"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
+            </Button>
+            <div className="flex-1">
+              <div className="flex justify-between items-end mb-4">
+                 <span className="text-primary font-bold">Progress: {currentIndex + 1} / {questions.length}</span>
+                 <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">Level {q?.level}</span>
+              </div>
+              <Progress value={((currentIndex + 1) / (questions?.length || 1)) * 100} className="h-4 bg-white/50" />
             </div>
-            <Progress value={((currentIndex + 1) / questions.length) * 100} className="h-4 bg-white/50" />
           </header>
 
           <main className="bg-white/95 rounded-[40px] p-12 shadow-2xl text-center">
-            <h2 className={cn("font-headline font-bold text-slate-800 mb-8", q.level > 1 ? "text-3xl" : "text-6xl")}>
-              {q.text}
+            <h2 className={cn("font-headline font-bold text-slate-800 mb-8", q?.level && q.level > 1 ? "text-3xl" : "text-6xl")}>
+              {q?.text}
             </h2>
-            {q.hint && <p className="text-slate-500 text-xl mb-8" dir="rtl">{q.hint}</p>}
+            {q?.hint && <p className="text-slate-500 text-xl mb-8" dir="rtl">{q.hint}</p>}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mx-auto">
-              {q.options.map((opt: any, i: number) => {
+              {q?.options.map((opt: any, i: number) => {
                 const isCorrect = q.type === "choice" ? opt.hebrew === q.answer : opt.is_correct;
                 const isSelected = selectedAnswer === i;
                 return (
@@ -225,3 +233,4 @@ export function TrainingGround({
     </div>
   );
 }
+
