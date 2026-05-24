@@ -103,8 +103,6 @@ export function ArcadeMode({
         setTimeout(() => setFlashRed(false), 300);
         
         // Remove leader and shift entire chain forward by one diameter
-        // In this math model, removing the leader makes the next one index 0,
-        // so it instantly occupies the same 'headDistance' spot.
         setWordChain(prevChain => {
           const newChain = [...prevChain];
           newChain.shift();
@@ -278,6 +276,7 @@ export function ArcadeMode({
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
+              // Only render beads that are on the track
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
