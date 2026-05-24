@@ -18,9 +18,8 @@ import {
   LayoutGrid,
   BrainCircuit
 } from "lucide-react";
-import { useStudyLogic } from "@/hooks/use-study-logic";
+import vocabData from "@/app/lib/vocabulary.json";
 import { cn, shuffleArray } from "@/lib/utils";
-import Image from "next/image";
 
 type GamePhase = "selector" | "active" | "summary";
 type TabSection = "daily" | "mastery";
@@ -29,14 +28,12 @@ type MatchPair = {
   id: string;
   english: string;
   hebrew: string;
-  imageUrl: string;
 };
 
 export function MatchRoom({ onBack }: { onBack: () => void }) {
-  const { filteredVocab, isReady } = useStudyLogic();
   const [phase, setPhase] = useState<GamePhase>("selector");
   const [activeTab, setActiveTab] = useState<TabSection>("daily");
-  const [selectedMode, setSelectedMode] = useState<{ id: number; isMastery: boolean } | null>(null);
+  const [selectedMode, setSelectedMode] = useState<{ dayId: number | null; isMastery: boolean } | null>(null);
   
   // Gameplay State
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
@@ -46,40 +43,39 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   const [feedback, setFeedback] = useState<{ id: string; type: "correct" | "wrong" } | null>(null);
   const [mistakes, setMistakes] = useState(0);
 
-  // 1. Curriculum Logic (Sun=0, Mon=1, Tue=2, Wed=3, Thu=4...)
-  const today = new Date().getDay();
-  const isMasteryVisible = today >= 3; // Visible starting Wednesday
+  // 1. Time-Lock Logic
+  // Sunday is 0, Monday is 1, Tuesday is 2, Wednesday is 3
+  const today = new Date().getDay(); 
+  const isWednesdayOrLater = today >= 3; 
 
   const dailyDays = useMemo(() => [
-    { id: 0, label: "Day 1", sub: "Sunday", dayOfWeek: 0 },
-    { id: 1, label: "Day 2", sub: "Monday", dayOfWeek: 1 },
-    { id: 2, label: "Day 3", sub: "Tuesday", dayOfWeek: 2 },
-    { id: 3, label: "Day 4", sub: "Wednesday", dayOfWeek: 3 },
+    { id: 1, label: "Day 1", sub: "Sunday", dayOfWeek: 0 },
+    { id: 2, label: "Day 2", sub: "Monday", dayOfWeek: 1 },
+    { id: 3, label: "Day 3", sub: "Tuesday", dayOfWeek: 2 },
+    { id: 4, label: "Day 4", sub: "Wednesday", dayOfWeek: 3 },
   ], []);
 
-  // 2. Word Chunking
+  // 2. Data Filtering from vocabulary.json
   const allWordsForSession = useMemo(() => {
-    if (!selectedMode || !isReady) return [];
+    if (!selectedMode) return [];
     
-    const week = filteredVocab.weeks[filteredVocab.weeks.length - 1];
-    if (!week) return [];
+    // Using the raw JSON data for the current week (assumed to be the data in vocabData)
+    const words = vocabData.words;
 
     if (selectedMode.isMastery) {
-      // Mastery Hub loads all 40 words of the current week
-      return week.words; 
+      // Mastery Hub loads all words (Days 1-4)
+      return words; 
     } else {
       // Daily Focus loads strictly its 10 unique words
-      const start = selectedMode.id * 10;
-      return week.words.slice(start, start + 10);
+      return words.filter(w => w.day === selectedMode.dayId);
     }
-  }, [selectedMode, isReady, filteredVocab]);
+  }, [selectedMode]);
 
   const chunks = useMemo(() => {
     const pairs: MatchPair[] = allWordsForSession.map(w => ({
       id: w.id,
       english: w.english,
       hebrew: w.hebrew,
-      imageUrl: `https://picsum.photos/seed/${w.id}/400/400`
     }));
     
     const result = [];
@@ -91,6 +87,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
 
   const currentChunk = chunks[currentChunkIndex] || [];
   
+  // Columns are independently shuffled whenever the chunk changes
   const leftColumn = useMemo(() => shuffleArray([...currentChunk]), [currentChunk]);
   const rightColumn = useMemo(() => shuffleArray([...currentChunk]), [currentChunk]);
 
@@ -104,7 +101,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
           setSelectedLeft(null);
           setSelectedRight(null);
           setFeedback(null);
-        }, 600);
+        }, 500);
       } else {
         setFeedback({ id: "mismatch", type: "wrong" });
         setMistakes(m => m + 1);
@@ -119,24 +116,27 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
 
   // Wave Progression
   useEffect(() => {
-    if (currentChunk.length > 0 && matchedIds.size > 0 && matchedIds.size === (currentChunkIndex + 1) * 5) {
+    const wordsInChunk = currentChunk.length;
+    const matchedInChunk = currentChunk.filter(w => matchedIds.has(w.id)).length;
+
+    if (wordsInChunk > 0 && matchedInChunk === wordsInChunk) {
         if (currentChunkIndex + 1 < chunks.length) {
-            setTimeout(() => setCurrentChunkIndex(i => i + 1), 800);
+            setTimeout(() => {
+                setCurrentChunkIndex(i => i + 1);
+            }, 800);
         } else {
             setTimeout(() => setPhase("summary"), 1000);
         }
     }
-  }, [matchedIds, currentChunk.length, currentChunkIndex, chunks.length]);
+  }, [matchedIds, currentChunk, currentChunkIndex, chunks.length]);
 
-  const startMode = (id: number, isMastery: boolean) => {
-    setSelectedMode({ id, isMastery });
+  const startMode = (dayId: number | null, isMastery: boolean) => {
+    setSelectedMode({ dayId, isMastery });
     setCurrentChunkIndex(0);
     setMatchedIds(new Set());
     setMistakes(0);
     setPhase("active");
   };
-
-  if (!isReady) return null;
 
   if (phase === "selector") {
     return (
@@ -147,7 +147,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
               <ArrowLeft className="w-8 h-8 text-slate-600" />
             </Button>
             <div>
-              <h1 className="text-4xl font-headline font-bold text-slate-800">Curriculum Matching</h1>
+              <h1 className="text-4xl font-headline font-bold text-slate-800">Curriculum Match</h1>
               <p className="text-slate-500 font-medium">Daily Focus & Mastery Challenges</p>
             </div>
           </header>
@@ -194,27 +194,27 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                 </div>
               ) : (
                 <div className="max-w-md mx-auto">
-                  {!isMasteryVisible ? (
-                    <Card className="p-12 text-center rounded-[48px] bg-slate-100 border-dashed border-2 border-slate-300 opacity-60">
-                      <Lock className="w-16 h-16 text-slate-300 mx-auto mb-6" />
-                      <h3 className="text-2xl font-headline font-bold text-slate-400 mb-2">Mastery Hub Locked</h3>
-                      <p className="text-slate-400">Unlock early on Wednesday to practice for the weekly exam.</p>
-                    </Card>
-                  ) : (
-                    <Card 
-                      onClick={() => startMode(4, true)}
-                      className="group cursor-pointer overflow-hidden p-12 text-center rounded-[48px] bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-2xl transition-all hover:scale-105"
-                    >
-                      <div className="w-20 h-20 bg-white/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
-                        <Trophy className="w-10 h-10 text-white" />
-                      </div>
-                      <h3 className="text-3xl font-headline font-bold mb-2">Weekly Mastery</h3>
-                      <p className="text-white/70 mb-10">Challenge yourself with all 40 words from this week. Prepares you for the final exam.</p>
-                      <Button className="w-full h-16 bg-white text-indigo-600 font-bold text-xl rounded-3xl hover:bg-white/90">
-                        START CHALLENGE
-                      </Button>
-                    </Card>
-                  )}
+                  <Card 
+                    onClick={() => isWednesdayOrLater && startMode(null, true)}
+                    className={cn(
+                        "group p-12 text-center rounded-[48px] shadow-2xl transition-all duration-300",
+                        isWednesdayOrLater 
+                            ? "cursor-pointer hover:scale-105 bg-gradient-to-br from-indigo-500 to-purple-600 text-white" 
+                            : "bg-slate-100 opacity-60 grayscale cursor-not-allowed"
+                    )}
+                  >
+                    <div className="w-20 h-20 bg-white/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+                      {isWednesdayOrLater ? <Sparkles className="w-10 h-10 text-white" /> : <Lock className="w-10 h-10 text-slate-400" />}
+                    </div>
+                    <h3 className="text-3xl font-headline font-bold mb-2">Weekly Mastery</h3>
+                    <p className={cn("mb-10", isWednesdayOrLater ? "text-white/70" : "text-slate-400")}>
+                        Challenge yourself with all 40 words from this week. Prepares you for the final exam.
+                        {!isWednesdayOrLater && <span className="block mt-2 font-bold text-slate-500 underline underline-offset-4 decoration-rose-400/50">Unlocks on Wednesday</span>}
+                    </p>
+                    <Button disabled={!isWednesdayOrLater} className="w-full h-16 bg-white text-indigo-600 font-bold text-xl rounded-3xl hover:bg-white/90">
+                      {isWednesdayOrLater ? "START CHALLENGE" : "LOCKED"}
+                    </Button>
+                  </Card>
                 </div>
               )}
             </div>
@@ -237,7 +237,9 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                  <span className="text-indigo-400 font-bold uppercase tracking-widest text-xs">
                    Wave {currentChunkIndex + 1} / {chunks.length}
                  </span>
-                 <span className="text-white/20 text-[10px] uppercase font-bold tracking-widest">Mastery Challenge</span>
+                 <span className="text-white/20 text-[10px] uppercase font-bold tracking-widest">
+                    {selectedMode?.isMastery ? "Whole Week Challenge" : `Day ${selectedMode?.dayId} Focus`}
+                 </span>
               </div>
               <Progress value={(matchedIds.size / allWordsForSession.length) * 100} className="h-3 bg-white/5" />
             </div>
@@ -247,9 +249,8 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
             </div>
           </header>
 
-          {/* Stabilized Grid Container */}
-          <main className="grid grid-cols-2 gap-12 min-h-[580px]">
-            {/* Left Column: Images */}
+          <main className="grid grid-cols-2 gap-8 min-h-[500px]">
+            {/* Left Column: English Tiles */}
             <div className="space-y-4">
               {leftColumn.map((item) => {
                 const isMatched = matchedIds.has(item.id);
@@ -263,28 +264,20 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     disabled={isMatched || (feedback?.type === "wrong")}
                     onClick={() => setSelectedLeft(item.id)}
                     className={cn(
-                      "relative w-full h-24 sm:h-28 rounded-[28px] overflow-hidden border-4 transition-all duration-300 bg-slate-900 shadow-xl",
-                      isMatched ? "opacity-0 scale-90 pointer-events-none translate-y-4" : "hover:scale-[1.02] hover:shadow-2xl",
-                      isSelected ? "border-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.6)]" : "border-white/5",
-                      isWrong && "border-rose-500 animate-shake",
-                      isCorrect && "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.6)]"
+                      "w-full h-20 rounded-3xl flex items-center justify-center text-xl font-bold transition-all duration-300 border-4 shadow-xl",
+                      isMatched ? "opacity-0 scale-90 pointer-events-none" : "hover:scale-[1.02] bg-white/5",
+                      isSelected ? "border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.4)]" : "border-white/5 text-white/80",
+                      isWrong && "border-rose-500 text-rose-400 bg-rose-500/10 animate-shake",
+                      isCorrect && "border-emerald-500 text-emerald-400 bg-emerald-500/10"
                     )}
                   >
-                    <Image 
-                      src={item.imageUrl} 
-                      alt={item.english}
-                      fill
-                      className="object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-4">
-                       <span className="text-white font-bold text-xs uppercase tracking-widest">{item.english}</span>
-                    </div>
+                    {item.english}
                   </button>
                 );
               })}
             </div>
 
-            {/* Right Column: Translations */}
+            {/* Right Column: Hebrew Tiles */}
             <div className="space-y-4">
               {rightColumn.map((item) => {
                 const isMatched = matchedIds.has(item.id);
@@ -298,9 +291,9 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     disabled={isMatched || (feedback?.type === "wrong")}
                     onClick={() => setSelectedRight(item.id)}
                     className={cn(
-                      "w-full h-24 sm:h-28 rounded-[28px] flex items-center justify-center text-4xl font-bold transition-all duration-300 border-4 shadow-xl",
-                      isMatched ? "opacity-0 scale-90 pointer-events-none translate-y-4" : "hover:scale-[1.02] bg-white/5 hover:bg-white/10",
-                      isSelected ? "border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[0_0_30px_rgba(99,102,241,0.4)]" : "border-white/5 text-white/80",
+                      "w-full h-20 rounded-3xl flex items-center justify-center text-3xl font-bold transition-all duration-300 border-4 shadow-xl",
+                      isMatched ? "opacity-0 scale-90 pointer-events-none" : "hover:scale-[1.02] bg-white/5",
+                      isSelected ? "border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.4)]" : "border-white/5 text-white/80",
                       isWrong && "border-rose-500 text-rose-400 bg-rose-500/10 animate-shake",
                       isCorrect && "border-emerald-500 text-emerald-400 bg-emerald-500/10"
                     )}
@@ -343,13 +336,15 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
            <div className="bg-slate-50 p-6 rounded-3xl">
               <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Accuracy</p>
               <p className={cn("text-3xl font-bold", mistakes === 0 ? "text-emerald-500" : "text-amber-500")}>
-                {Math.round(((allWordsForSession.length) / (allWordsForSession.length + mistakes)) * 100)}%
+                {allWordsForSession.length > 0 
+                  ? Math.round(((allWordsForSession.length) / (allWordsForSession.length + mistakes)) * 100)
+                  : 0}%
               </p>
            </div>
         </div>
 
         <Button onClick={() => setPhase("selector")} className="w-full chunky-button chunky-primary h-16 text-xl rounded-2xl">
-          CONTINUE
+          BACK TO SELECTOR
         </Button>
       </Card>
     </div>
