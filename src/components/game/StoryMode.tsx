@@ -6,15 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, 
   ChevronRight, 
-  GraduationCap, 
   Trophy,
-  MessageSquareText,
-  CheckCircle2,
-  XCircle,
   Lock,
   Calendar
 } from "lucide-react";
@@ -72,8 +67,8 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
                 </span>
               </TooltipTrigger>
               <TooltipContent className="bg-slate-800 text-white border-none p-3 rounded-xl shadow-xl">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Translation</p>
-                <p className="text-lg font-bold" dir="rtl">{translation}</p>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Translation</div>
+                <div className="text-lg font-bold" dir="rtl">{translation}</div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -161,9 +156,9 @@ export function StoryMode({ onBack }: { onBack: () => void }) {
           <Card className="p-12 rounded-[40px] border border-white/50 shadow-2xl bg-white/95 backdrop-blur-md mb-12">
             <div className="space-y-6">
               {activeStory?.paragraphs.map((para: string, i: number) => (
-                <p key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight">
+                <div key={i} className="text-xl leading-relaxed text-slate-700 font-medium tracking-tight mb-6 last:mb-0">
                   {highlightText(para)}
-                </p>
+                </div>
               ))}
             </div>
           </Card>
