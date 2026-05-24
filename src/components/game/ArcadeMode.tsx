@@ -11,8 +11,8 @@ import { cn, shuffleArray } from "@/lib/utils";
 
 type GameState = "ready" | "playing" | "gameover";
 
-const BEAD_DIAMETER = 64; 
-const BASE_SPEED = 0.5; // Slower, steady crawl
+const BEAD_DIAMETER = 88; 
+const BASE_SPEED = 0.5; 
 const SVG_WIDTH = 1000;
 const SVG_HEIGHT = 600;
 
@@ -36,7 +36,6 @@ export function ArcadeMode({
   const requestRef = useRef<number | null>(null);
   const [pathLength, setPathLength] = useState(0);
 
-  // Pool management
   const todayPool = useMemo(() => {
     return filteredVocab.weeks.flatMap(w => w.words);
   }, [filteredVocab]);
@@ -70,7 +69,6 @@ export function ArcadeMode({
   }, [allUnlockedPool, todayPool, score, generateOptions]);
 
   const startGame = () => {
-    // Initial packed chain
     const initialChain = Array.from({ length: 15 }, () => addWordToChain());
     setWordChain(initialChain);
     setScore(0);
@@ -92,7 +90,6 @@ export function ArcadeMode({
       const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
       const nextDistance = prev + BASE_SPEED * speedMultiplier;
 
-      // Fail condition: Leader (index 0) reaches the end
       if (pathLength > 0 && nextDistance >= pathLength) {
         setLives(l => {
           const nextLives = l - 1;
@@ -102,7 +99,6 @@ export function ArcadeMode({
         setFlashRed(true);
         setTimeout(() => setFlashRed(false), 300);
         
-        // Remove leader and shift entire chain forward by one diameter
         setWordChain(prevChain => {
           const newChain = [...prevChain];
           newChain.shift();
@@ -134,8 +130,8 @@ export function ArcadeMode({
     if (isCorrect) {
       setWordChain(prev => {
         const next = [...prev];
-        next.shift(); // Remove leader
-        next.push(addWordToChain()); // Add new tail
+        next.shift();
+        next.push(addWordToChain());
         return next;
       });
       
@@ -214,9 +210,7 @@ export function ArcadeMode({
       "fixed inset-0 flex flex-col bg-slate-900 overflow-hidden font-headline transition-colors duration-300",
       flashRed && "bg-rose-950/50"
     )}>
-      {/* GAME BOARD: SVG Area */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {/* HUD */}
+      <div className="flex-1 w-full min-h-[70vh] relative flex items-center justify-center overflow-hidden">
         <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start z-50 pointer-events-none">
           <Button 
             variant="ghost" 
@@ -253,30 +247,26 @@ export function ArcadeMode({
             </filter>
           </defs>
 
-          {/* Path - Outer Indigo Tube */}
           <path 
             ref={pathRef}
             d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
             fill="none" 
             stroke="#1e1b4b" 
-            strokeWidth="70" 
+            strokeWidth="100" 
             strokeLinecap="round" 
           />
-          {/* Path - Neon Core */}
           <path 
             d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
             fill="none" 
             stroke="#8b5cf6" 
-            strokeWidth="4" 
+            strokeWidth="6" 
             strokeLinecap="round" 
             className="opacity-40"
           />
           
-          {/* Beads Layer */}
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
-              // Only render beads that are on the track
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
@@ -290,10 +280,10 @@ export function ArcadeMode({
                   style={{ opacity: distance < 0 ? 0 : 1 }}
                 >
                   <circle 
-                    r="32" 
+                    r="44" 
                     fill={isLeader ? "#4f46e5" : "#1e293b"} 
                     stroke={isLeader ? "white" : "#4338ca"} 
-                    strokeWidth={isLeader ? "4" : "2"}
+                    strokeWidth={isLeader ? "6" : "2"}
                     filter={isLeader ? "url(#glow)" : undefined}
                     className={cn(isLeader && "animate-pulse")}
                   />
@@ -301,7 +291,7 @@ export function ArcadeMode({
                     textAnchor="middle" 
                     dominantBaseline="central" 
                     fill="white" 
-                    fontSize="10" 
+                    fontSize="18" 
                     fontWeight="bold"
                     style={{ pointerEvents: 'none', textTransform: 'uppercase' }}
                   >
@@ -312,16 +302,14 @@ export function ArcadeMode({
             })}
           </g>
 
-          {/* Exit Hole */}
           <g transform="translate(150, 450)">
-            <circle r="45" fill="#020617" />
-            <circle r="40" fill="none" stroke="#4338ca" strokeWidth="2" strokeDasharray="5,5" className="animate-spin" style={{ animationDuration: '10s' }} />
+            <circle r="55" fill="#020617" />
+            <circle r="44" fill="none" stroke="#4338ca" strokeWidth="2" strokeDasharray="5,5" className="animate-spin" style={{ animationDuration: '10s' }} />
           </g>
         </svg>
       </div>
 
-      {/* CONTROLS: Bottom Area */}
-      <div className="h-[35vh] bg-slate-950 border-t border-white/5 p-6 flex flex-col justify-center items-center z-50">
+      <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
