@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 import { ArrowLeft, Trophy, Lock, Calendar } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
 import { cn, shuffleArray } from "@/lib/utils";
