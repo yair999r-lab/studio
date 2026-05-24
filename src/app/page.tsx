@@ -7,14 +7,15 @@ import { StudyRoom } from "@/components/game/StudyRoom";
 import { TrainingGround } from "@/components/game/TrainingGround";
 import { ArcadeMode } from "@/components/game/ArcadeMode";
 import { StoryMode } from "@/components/game/StoryMode";
+import { MatchRoom } from "@/components/game/MatchRoom";
 import { Onboarding } from "@/components/game/Onboarding";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Zap, BrainCircuit, Coins, BookText, GraduationCap, Trophy } from "lucide-react";
+import { BookOpen, Zap, BrainCircuit, Coins, BookText, GraduationCap, Trophy, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type GameZone = "lobby" | "vocab" | "training" | "arcade" | "mistakes" | "story";
+type GameZone = "lobby" | "vocab" | "training" | "arcade" | "mistakes" | "story" | "match";
 type MainTab = "study" | "games";
 
 export default function Home() {
@@ -37,6 +38,7 @@ export default function Home() {
   // Zone rendering
   if (currentZone === "vocab") return <StudyRoom onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "story") return <StoryMode onBack={() => setCurrentZone("lobby")} />;
+  if (currentZone === "match") return <MatchRoom onBack={() => setCurrentZone("lobby")} />;
   if (currentZone === "training") return (
     <TrainingGround 
       onBack={() => setCurrentZone("lobby")} 
@@ -59,7 +61,7 @@ export default function Home() {
     />
   );
 
-  const hasEnoughMistakes = mistakes.length >= 5; // Reduced from 10 for better UX but user can decide
+  const hasEnoughMistakes = mistakes.length >= 5;
 
   return (
     <div className="relative min-h-screen bg-slate-50 overflow-hidden font-body flex flex-col">
@@ -174,7 +176,7 @@ export default function Home() {
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               <Card className="group relative flex flex-col rounded-[40px] p-10 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center items-center">
                 <div className="w-20 h-20 bg-emerald-100 rounded-[28px] flex items-center justify-center mb-8">
                   <Zap className="w-10 h-10 text-emerald-600" />
@@ -183,6 +185,17 @@ export default function Home() {
                 <p className="text-slate-500 mb-10">Fast-paced reflexive vocabulary challenge.</p>
                 <Button onClick={() => setCurrentZone("arcade")} className="w-full chunky-button chunky-primary h-16 rounded-[28px] text-xl">
                   Play Now
+                </Button>
+              </Card>
+
+              <Card className="group relative flex flex-col rounded-[40px] p-10 border-none shadow-xl bg-white/80 backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl text-center items-center">
+                <div className="w-20 h-20 bg-indigo-100 rounded-[28px] flex items-center justify-center mb-8">
+                  <Gamepad2 className="w-10 h-10 text-indigo-600" />
+                </div>
+                <h3 className="text-3xl font-headline font-bold text-slate-800 mb-4">Match Room</h3>
+                <p className="text-slate-500 mb-10">Interactive image-to-word matching curriculum.</p>
+                <Button onClick={() => setCurrentZone("match")} className="w-full chunky-button chunky-primary h-16 rounded-[28px] text-xl">
+                  Enter Room
                 </Button>
               </Card>
 
