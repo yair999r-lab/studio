@@ -37,19 +37,26 @@ export function ArcadeMode({
   const [pathLength, setPathLength] = useState(0);
 
   const todayPool = useMemo(() => {
-    return filteredVocab.weeks.flatMap(w => w.words);
+    return filteredVocab?.weeks?.flatMap(w => w.words) || [];
   }, [filteredVocab]);
 
   const allUnlockedPool = useMemo(() => {
-    const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
-    const pastWords = vocabData.weeks
-      .filter(w => w.week_id < maxWeekId)
-      .flatMap(w => w.words);
-    return [...pastWords, ...todayPool];
+    if (!vocabData?.weeks) return todayPool;
+    try {
+      const maxWeekId = Math.max(...vocabData.weeks.map(w => w.week_id));
+      const pastWords = vocabData.weeks
+        .filter(w => w.week_id < maxWeekId)
+        .flatMap(w => w.words);
+      return [...pastWords, ...todayPool];
+    } catch (e) {
+      return todayPool;
+    }
   }, [todayPool]);
 
   const generateOptions = useCallback((target: any) => {
     const currentPool = score >= 10 ? allUnlockedPool : todayPool;
+    if (!currentPool || currentPool.length === 0) return target ? [target] : [];
+    
     const distractors = currentPool
       .filter(w => w.id !== target.id)
       .sort(() => Math.random() - 0.5)
@@ -59,7 +66,8 @@ export function ArcadeMode({
 
   const addWordToChain = useCallback(() => {
     const currentPool = score >= 10 ? allUnlockedPool : todayPool;
-    if (currentPool.length === 0) return null;
+    if (!currentPool || currentPool.length === 0) return null;
+    
     const word = currentPool[Math.floor(Math.random() * currentPool.length)];
     return {
       instanceId: Math.random().toString(36).substr(2, 9),
@@ -69,7 +77,8 @@ export function ArcadeMode({
   }, [allUnlockedPool, todayPool, score, generateOptions]);
 
   const startGame = () => {
-    const initialChain = Array.from({ length: 15 }, () => addWordToChain());
+    const initialChain = Array.from({ length: 15 }, () => addWordToChain()).filter(Boolean);
+    if (initialChain.length === 0) return;
     setWordChain(initialChain);
     setScore(0);
     setLives(2);
@@ -93,7 +102,7 @@ export function ArcadeMode({
         setTimeout(() => setFlashRed(false), 300);
         
         // Reset the chain and distance to clear the track
-        const newChain = Array.from({ length: 15 }, () => addWordToChain());
+        const newChain = Array.from({ length: 15 }, () => addWordToChain()).filter(Boolean);
         setWordChain(newChain);
         setHeadDistance(0);
       } else {
@@ -131,12 +140,12 @@ export function ArcadeMode({
       setWordChain(prev => {
         const next = [...prev];
         next.shift();
-        next.push(addWordToChain());
+        const newWord = addWordToChain();
+        if (newWord) next.push(newWord);
         return next;
       });
       
       setScore(s => s + 1);
-      // Parent state update from an event handler is safe
       onScore(1); 
       
     } else {
@@ -315,19 +324,19 @@ export function ArcadeMode({
           {wordChain.length > 0 && headDistance > 0 ? (
             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
               {wordChain[0].options.map((opt: any, i: number) => (
-                <Button
+                <button
                   key={i}
                   disabled={isPenalty}
                   onClick={() => handleAnswer(opt.id === wordChain[0].id)}
                   className={cn(
-                    "h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-3xl transition-all border-none shadow-xl",
+                    "h-16 sm:h-20 text-xl sm:text-2xl font-bold rounded-3xl transition-all border-none shadow-xl flex items-center justify-center px-4",
                     !isPenalty && "bg-white/5 text-white hover:bg-indigo-600 hover:scale-[1.02] active:scale-95",
                     isPenalty && "opacity-20 grayscale cursor-not-allowed"
                   )}
                   dir="rtl"
                 >
                   {opt.hebrew}
-                </Button>
+                </button>
               ))}
             </div>
           ) : (
