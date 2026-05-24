@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, 
   Trophy, 
@@ -12,14 +13,17 @@ import {
   CheckCircle2, 
   Calendar, 
   Sparkles,
-  Gamepad2,
-  Clock
+  Zap,
+  Clock,
+  LayoutGrid,
+  BrainCircuit
 } from "lucide-react";
 import { useStudyLogic } from "@/hooks/use-study-logic";
 import { cn, shuffleArray } from "@/lib/utils";
 import Image from "next/image";
 
 type GamePhase = "selector" | "active" | "summary";
+type TabSection = "daily" | "mastery";
 
 type MatchPair = {
   id: string;
@@ -31,7 +35,8 @@ type MatchPair = {
 export function MatchRoom({ onBack }: { onBack: () => void }) {
   const { filteredVocab, isReady } = useStudyLogic();
   const [phase, setPhase] = useState<GamePhase>("selector");
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<TabSection>("daily");
+  const [selectedMode, setSelectedMode] = useState<{ id: number; isMastery: boolean } | null>(null);
   
   // Gameplay State
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
@@ -41,51 +46,40 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   const [feedback, setFeedback] = useState<{ id: string; type: "correct" | "wrong" } | null>(null);
   const [mistakes, setMistakes] = useState(0);
 
-  // 1. Curriculum Locking Logic
-  const today = new Date().getDay(); // 0 (Sun) to 6 (Sat)
-  
-  const curriculumDays = useMemo(() => [
-    { id: 1, label: "Day 1", sub: "Sunday", dayOfWeek: 0, isTest: false },
-    { id: 2, label: "Day 2", sub: "Monday", dayOfWeek: 1, isTest: false },
-    { id: 3, label: "Day 3", sub: "Tuesday", dayOfWeek: 2, isTest: false },
-    { id: 4, label: "Day 4", sub: "Wednesday", dayOfWeek: 3, isTest: false },
-    { id: 5, label: "Day 5", sub: "Weekly Test", dayOfWeek: 4, isTest: true },
-    { id: 6, label: "Day 6", sub: "Weekend Rev", dayOfWeek: 5, isTest: false },
-    { id: 7, label: "Day 7", sub: "Weekend Rev", dayOfWeek: 6, isTest: false },
+  // 1. Curriculum Logic (Sun=0, Mon=1, Tue=2, Wed=3, Thu=4...)
+  const today = new Date().getDay();
+  const isMasteryVisible = today >= 3; // Visible starting Wednesday
+
+  const dailyDays = useMemo(() => [
+    { id: 0, label: "Day 1", sub: "Sunday", dayOfWeek: 0 },
+    { id: 1, label: "Day 2", sub: "Monday", dayOfWeek: 1 },
+    { id: 2, label: "Day 3", sub: "Tuesday", dayOfWeek: 2 },
+    { id: 3, label: "Day 4", sub: "Wednesday", dayOfWeek: 3 },
   ], []);
 
-  const isDayUnlocked = (dayOfWeek: number) => {
-    // Current day or past days are unlocked
-    if (dayOfWeek <= today) return true;
-    // SPECIAL RULE: If today is Wednesday (3), unlock Thursday's Test (4) early
-    if (today === 3 && dayOfWeek === 4) return true;
-    return false;
-  };
-
-  // 2. Word Chunking (Wave System)
-  const allWordsForDay = useMemo(() => {
-    if (selectedDayIndex === null || !isReady) return [];
+  // 2. Word Chunking
+  const allWordsForSession = useMemo(() => {
+    if (!selectedMode || !isReady) return [];
     
-    // For Day 5 (Test), we fetch words from the entire week
-    if (selectedDayIndex === 4) {
-        return filteredVocab.weeks[filteredVocab.weeks.length - 1]?.words || [];
-    }
-
-    // Otherwise, fetch words for that specific day chunk
     const week = filteredVocab.weeks[filteredVocab.weeks.length - 1];
     if (!week) return [];
 
-    // Daily logic matches the slice in useStudyLogic
-    const start = selectedDayIndex * 10;
-    return week.words.slice(start, start + 10);
-  }, [selectedDayIndex, isReady, filteredVocab]);
+    if (selectedMode.isMastery) {
+      // Mastery Hub loads all 40 words of the current week
+      return week.words; 
+    } else {
+      // Daily Focus loads strictly its 10 unique words
+      const start = selectedMode.id * 10;
+      return week.words.slice(start, start + 10);
+    }
+  }, [selectedMode, isReady, filteredVocab]);
 
   const chunks = useMemo(() => {
-    const pairs: MatchPair[] = allWordsForDay.map(w => ({
+    const pairs: MatchPair[] = allWordsForSession.map(w => ({
       id: w.id,
       english: w.english,
       hebrew: w.hebrew,
-      imageUrl: `https://picsum.photos/seed/${w.id}/200/200` // Using picsum as fallback for robustness
+      imageUrl: `https://picsum.photos/seed/${w.id}/400/400`
     }));
     
     const result = [];
@@ -93,7 +87,7 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
       result.push(pairs.slice(i, i + 5));
     }
     return result;
-  }, [allWordsForDay]);
+  }, [allWordsForSession]);
 
   const currentChunk = chunks[currentChunkIndex] || [];
   
@@ -127,15 +121,15 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     if (currentChunk.length > 0 && matchedIds.size > 0 && matchedIds.size === (currentChunkIndex + 1) * 5) {
         if (currentChunkIndex + 1 < chunks.length) {
-            setTimeout(() => setCurrentChunkIndex(i => i + 1), 500);
+            setTimeout(() => setCurrentChunkIndex(i => i + 1), 800);
         } else {
-            setTimeout(() => setPhase("summary"), 800);
+            setTimeout(() => setPhase("summary"), 1000);
         }
     }
   }, [matchedIds, currentChunk.length, currentChunkIndex, chunks.length]);
 
-  const startDay = (idx: number) => {
-    setSelectedDayIndex(idx);
+  const startMode = (id: number, isMastery: boolean) => {
+    setSelectedMode({ id, isMastery });
     setCurrentChunkIndex(0);
     setMatchedIds(new Set());
     setMistakes(0);
@@ -147,68 +141,84 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   if (phase === "selector") {
     return (
       <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center">
-        <div className="max-w-6xl w-full">
+        <div className="max-w-4xl w-full">
           <header className="flex items-center gap-6 mb-12">
-            <Button variant="ghost" onClick={onBack} className="rounded-2xl h-14 w-14 bg-white shadow-sm">
+            <Button variant="ghost" onClick={onBack} className="rounded-2xl h-14 w-14 bg-white shadow-sm hover:scale-110 active:scale-95 transition-all">
               <ArrowLeft className="w-8 h-8 text-slate-600" />
             </Button>
             <div>
-              <h1 className="text-4xl font-headline font-bold text-slate-800">Match Room</h1>
-              <p className="text-slate-500 font-medium">Curriculum Practice & Tests</p>
+              <h1 className="text-4xl font-headline font-bold text-slate-800">Curriculum Matching</h1>
+              <p className="text-slate-500 font-medium">Daily Focus & Mastery Challenges</p>
             </div>
           </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {curriculumDays.map((day, idx) => {
-              const unlocked = isDayUnlocked(day.dayOfWeek);
-              const isToday = day.dayOfWeek === today;
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabSection)} className="w-full">
+            <TabsList className="grid grid-cols-2 bg-slate-200/50 p-1 rounded-3xl h-16 mb-12">
+              <TabsTrigger value="daily" className="rounded-2xl font-bold data-[state=active]:bg-white data-[state=active]:shadow-md">
+                DAILY FOCUS
+              </TabsTrigger>
+              <TabsTrigger value="mastery" className="rounded-2xl font-bold data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md">
+                MASTERY HUB
+              </TabsTrigger>
+            </TabsList>
 
-              return (
-                <Card 
-                  key={day.id}
-                  onClick={() => unlocked && startDay(idx)}
-                  className={cn(
-                    "relative overflow-hidden group p-8 rounded-[40px] border-none shadow-xl transition-all duration-300",
-                    unlocked ? "cursor-pointer hover:scale-105 hover:shadow-2xl bg-white" : "bg-slate-100 opacity-80 cursor-not-allowed",
-                    day.isTest && unlocked && "bg-gradient-to-br from-indigo-500 to-purple-600 text-white",
-                    isToday && unlocked && !day.isTest && "ring-4 ring-primary ring-offset-4"
+            <div className="min-h-[400px]">
+              {activeTab === "daily" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {dailyDays.map((day) => {
+                    const isLocked = day.dayOfWeek > today;
+                    const isToday = day.dayOfWeek === today;
+
+                    return (
+                      <Card 
+                        key={day.id}
+                        onClick={() => !isLocked && startMode(day.id, false)}
+                        className={cn(
+                          "relative group p-8 rounded-[40px] border-none shadow-xl transition-all duration-300",
+                          !isLocked ? "cursor-pointer hover:scale-105 bg-white" : "bg-slate-100 opacity-80 cursor-not-allowed",
+                          isToday && "ring-4 ring-primary ring-offset-4"
+                        )}
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-6">
+                          {isLocked ? <Lock className="w-7 h-7 text-slate-300" /> : <Calendar className="w-7 h-7 text-primary" />}
+                        </div>
+                        <h3 className="text-2xl font-headline font-bold mb-1 text-slate-800">{day.label}</h3>
+                        <p className="text-sm font-medium text-slate-400 mb-8">{day.sub}</p>
+                        
+                        <Button disabled={isLocked} className="w-full chunky-button chunky-primary rounded-2xl h-12 text-xs">
+                          {isLocked ? "LOCKED" : "START SESSION"}
+                        </Button>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="max-w-md mx-auto">
+                  {!isMasteryVisible ? (
+                    <Card className="p-12 text-center rounded-[48px] bg-slate-100 border-dashed border-2 border-slate-300 opacity-60">
+                      <Lock className="w-16 h-16 text-slate-300 mx-auto mb-6" />
+                      <h3 className="text-2xl font-headline font-bold text-slate-400 mb-2">Mastery Hub Locked</h3>
+                      <p className="text-slate-400">Unlock early on Wednesday to practice for the weekly exam.</p>
+                    </Card>
+                  ) : (
+                    <Card 
+                      onClick={() => startMode(4, true)}
+                      className="group cursor-pointer overflow-hidden p-12 text-center rounded-[48px] bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-2xl transition-all hover:scale-105"
+                    >
+                      <div className="w-20 h-20 bg-white/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+                        <Trophy className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className="text-3xl font-headline font-bold mb-2">Weekly Mastery</h3>
+                      <p className="text-white/70 mb-10">Challenge yourself with all 40 words from this week. Prepares you for the final exam.</p>
+                      <Button className="w-full h-16 bg-white text-indigo-600 font-bold text-xl rounded-3xl hover:bg-white/90">
+                        START CHALLENGE
+                      </Button>
+                    </Card>
                   )}
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center",
-                      day.isTest ? "bg-white/20" : "bg-slate-50"
-                    )}>
-                      {unlocked ? <Calendar className={cn("w-7 h-7", day.isTest ? "text-white" : "text-primary")} /> : <Lock className="w-7 h-7 text-slate-300" />}
-                    </div>
-                    {isToday && unlocked && (
-                      <span className="bg-primary text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">Today</span>
-                    )}
-                    {today === 3 && day.dayOfWeek === 4 && (
-                      <span className="bg-amber-400 text-slate-900 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full animate-pulse">Early Access</span>
-                    )}
-                  </div>
-                  
-                  <h3 className={cn("text-2xl font-headline font-bold mb-1", day.isTest && "text-white")}>{day.label}</h3>
-                  <p className={cn("text-sm font-medium", day.isTest ? "text-white/70" : "text-slate-400")}>{day.sub}</p>
-                  
-                  {!unlocked && (
-                    <div className="mt-8 flex items-center gap-2 text-slate-400">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-xs font-bold uppercase tracking-widest">Locked</span>
-                    </div>
-                  )}
-                  {unlocked && (
-                    <div className="mt-8">
-                       <Button variant={day.isTest ? "secondary" : "default"} className="w-full chunky-button rounded-2xl h-12 shadow-sm">
-                         {day.isTest ? "START TEST" : "PRACTICE"}
-                       </Button>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+                </div>
+              )}
+            </div>
+          </Tabs>
         </div>
       </div>
     );
@@ -217,27 +227,28 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
   if (phase === "active") {
     return (
       <div className="min-h-screen bg-slate-950 p-8 flex flex-col items-center font-headline">
-        <div className="max-w-4xl w-full">
+        <div className="max-w-5xl w-full">
           <header className="flex items-center gap-8 mb-12">
-            <Button variant="ghost" onClick={() => setPhase("selector")} className="bg-white/5 text-white hover:bg-white/10 rounded-2xl h-12">
+            <Button variant="ghost" onClick={() => setPhase("selector")} className="bg-white/5 text-white hover:bg-white/10 rounded-2xl h-12 border border-white/10">
               <ArrowLeft className="w-5 h-5 mr-2" /> EXIT
             </Button>
             <div className="flex-1">
               <div className="flex justify-between items-end mb-2">
-                 <span className="text-indigo-400 font-bold uppercase tracking-widest text-sm">
+                 <span className="text-indigo-400 font-bold uppercase tracking-widest text-xs">
                    Wave {currentChunkIndex + 1} / {chunks.length}
                  </span>
-                 <span className="text-white/40 text-xs font-medium">Matching words...</span>
+                 <span className="text-white/20 text-[10px] uppercase font-bold tracking-widest">Mastery Challenge</span>
               </div>
-              <Progress value={(matchedIds.size / allWordsForDay.length) * 100} className="h-3 bg-white/5" />
+              <Progress value={(matchedIds.size / allWordsForSession.length) * 100} className="h-3 bg-white/5" />
             </div>
-            <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
-               <span className="text-rose-400 font-bold">{mistakes}</span>
-               <span className="text-white/30 text-xs uppercase font-bold">Mistakes</span>
+            <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
+               <span className="text-white/40 text-xs uppercase font-bold mr-3">Mistakes</span>
+               <span className="text-rose-400 font-bold text-xl">{mistakes}</span>
             </div>
           </header>
 
-          <main className="grid grid-cols-2 gap-12">
+          {/* Stabilized Grid Container */}
+          <main className="grid grid-cols-2 gap-12 min-h-[580px]">
             {/* Left Column: Images */}
             <div className="space-y-4">
               {leftColumn.map((item) => {
@@ -252,21 +263,21 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     disabled={isMatched || (feedback?.type === "wrong")}
                     onClick={() => setSelectedLeft(item.id)}
                     className={cn(
-                      "relative w-full h-32 rounded-[28px] overflow-hidden border-4 transition-all duration-300",
-                      isMatched ? "opacity-0 scale-90 pointer-events-none" : "hover:scale-[1.02]",
-                      isSelected ? "border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)]" : "border-white/5",
+                      "relative w-full h-24 sm:h-28 rounded-[28px] overflow-hidden border-4 transition-all duration-300 bg-slate-900 shadow-xl",
+                      isMatched ? "opacity-0 scale-90 pointer-events-none translate-y-4" : "hover:scale-[1.02] hover:shadow-2xl",
+                      isSelected ? "border-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.6)]" : "border-white/5",
                       isWrong && "border-rose-500 animate-shake",
-                      isCorrect && "border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+                      isCorrect && "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.6)]"
                     )}
                   >
                     <Image 
                       src={item.imageUrl} 
                       alt={item.english}
                       fill
-                      className="object-cover"
+                      className="object-cover opacity-90 transition-opacity group-hover:opacity-100"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                       <span className="text-white font-bold text-sm uppercase tracking-widest">{item.english}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-4">
+                       <span className="text-white font-bold text-xs uppercase tracking-widest">{item.english}</span>
                     </div>
                   </button>
                 );
@@ -287,9 +298,9 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
                     disabled={isMatched || (feedback?.type === "wrong")}
                     onClick={() => setSelectedRight(item.id)}
                     className={cn(
-                      "w-full h-32 rounded-[28px] flex items-center justify-center text-4xl font-bold transition-all duration-300 border-4",
-                      isMatched ? "opacity-0 scale-90 pointer-events-none" : "hover:scale-[1.02] bg-white/5",
-                      isSelected ? "border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[0_0_20px_rgba(99,102,241,0.3)]" : "border-white/5 text-white/80",
+                      "w-full h-24 sm:h-28 rounded-[28px] flex items-center justify-center text-4xl font-bold transition-all duration-300 border-4 shadow-xl",
+                      isMatched ? "opacity-0 scale-90 pointer-events-none translate-y-4" : "hover:scale-[1.02] bg-white/5 hover:bg-white/10",
+                      isSelected ? "border-indigo-500 text-indigo-400 bg-indigo-500/10 shadow-[0_0_30px_rgba(99,102,241,0.4)]" : "border-white/5 text-white/80",
                       isWrong && "border-rose-500 text-rose-400 bg-rose-500/10 animate-shake",
                       isCorrect && "border-emerald-500 text-emerald-400 bg-emerald-500/10"
                     )}
@@ -317,26 +328,28 @@ export function MatchRoom({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-indigo-950 flex items-center justify-center p-8">
-      <Card className="max-w-xl w-full p-12 rounded-[48px] text-center bg-white shadow-2xl border-none">
+      <Card className="max-w-xl w-full p-12 rounded-[64px] text-center bg-white shadow-2xl border-none">
         <div className="w-24 h-24 bg-emerald-100 rounded-[32px] flex items-center justify-center mx-auto mb-8 animate-bounce">
           <Trophy className="w-12 h-12 text-emerald-600" />
         </div>
-        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Day Completed!</h1>
-        <p className="text-slate-500 text-lg mb-10">You've successfully matched all word pairs for today.</p>
+        <h1 className="text-4xl font-headline font-bold text-slate-800 mb-4">Mastery Achieved!</h1>
+        <p className="text-slate-500 text-lg mb-10">You've successfully matched all pairs for this session.</p>
         
         <div className="grid grid-cols-2 gap-4 mb-10">
            <div className="bg-slate-50 p-6 rounded-3xl">
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Words</p>
-              <p className="text-3xl font-bold text-slate-800">{allWordsForDay.length}</p>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Words</p>
+              <p className="text-3xl font-bold text-slate-800">{allWordsForSession.length}</p>
            </div>
            <div className="bg-slate-50 p-6 rounded-3xl">
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Mistakes</p>
-              <p className="text-3xl font-bold text-rose-500">{mistakes}</p>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Accuracy</p>
+              <p className={cn("text-3xl font-bold", mistakes === 0 ? "text-emerald-500" : "text-amber-500")}>
+                {Math.round(((allWordsForSession.length) / (allWordsForSession.length + mistakes)) * 100)}%
+              </p>
            </div>
         </div>
 
         <Button onClick={() => setPhase("selector")} className="w-full chunky-button chunky-primary h-16 text-xl rounded-2xl">
-          BACK TO SELECTOR
+          CONTINUE
         </Button>
       </Card>
     </div>
