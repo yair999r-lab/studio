@@ -78,37 +78,37 @@ export function ArcadeMode({
   };
 
   useEffect(() => {
-    if (pathRef.current) {
+    if (gameState === "playing" && pathRef.current) {
       setPathLength(pathRef.current.getTotalLength());
     }
   }, [gameState]);
 
+  // Safe side-effect handler for when a bead reaches the end
+  useEffect(() => {
+    if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
+      if (lives > 1) {
+        setLives(l => l - 1);
+        setFlashRed(true);
+        setTimeout(() => setFlashRed(false), 300);
+        // Reset the chain to prevent chain reaction
+        setWordChain(Array.from({ length: 15 }, () => addWordToChain()));
+        setHeadDistance(0);
+      } else {
+        setLives(0);
+        setGameState("gameover");
+      }
+    }
+  }, [headDistance, pathLength, lives, gameState, addWordToChain]);
+
   const animate = useCallback(() => {
     if (gameState !== "playing") return;
 
-    setHeadDistance(prev => {
-      const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
-      const nextDistance = prev + BASE_SPEED * speedMultiplier;
-
-      if (pathLength > 0 && nextDistance >= pathLength) {
-        if (lives > 1) {
-          setLives(l => l - 1);
-          setFlashRed(true);
-          setTimeout(() => setFlashRed(false), 300);
-          setWordChain(Array.from({ length: 15 }, () => addWordToChain()));
-          return 0; 
-        } else {
-          setLives(0);
-          setGameState("gameover");
-          return nextDistance;
-        }
-      }
-
-      return nextDistance;
-    });
-
+    const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
+    const increment = BASE_SPEED * speedMultiplier;
+    
+    setHeadDistance(prev => prev + increment);
     requestRef.current = requestAnimationFrame(animate);
-  }, [gameState, score, pathLength, addWordToChain, lives]);
+  }, [gameState, score]);
 
   useEffect(() => {
     if (gameState === "playing") {
@@ -143,7 +143,9 @@ export function ArcadeMode({
   const getPoint = (distance: number) => {
     if (!pathRef.current) return { x: -100, y: -100 };
     try {
-        return pathRef.current.getPointAtLength(Math.max(0, distance));
+        // Clamp distance within valid range for path
+        const clampedDist = Math.max(0, Math.min(distance, pathLength || 1000));
+        return pathRef.current.getPointAtLength(clampedDist);
     } catch (e) {
         return { x: -100, y: -100 };
     }
@@ -262,6 +264,7 @@ export function ArcadeMode({
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
+              // Hide beads that haven't entered or have exited
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
