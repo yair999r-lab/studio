@@ -83,8 +83,7 @@ export function ArcadeMode({
     }
   }, [gameState]);
 
-  // CRITICAL FIX: Safe side-effect handler for when a bead reaches the end
-  // This logic is now inside useEffect to prevent setState during render errors.
+  // CRITICAL FIX: Move side-effects (losing life / game over) into useEffect to avoid render phase updates
   useEffect(() => {
     if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
       if (lives > 1) {
@@ -109,7 +108,7 @@ export function ArcadeMode({
     if (gameState !== "playing") return;
 
     const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
-    const increment = (BASE_SPEED * 0.4) * speedMultiplier; // Reduced speed factor
+    const increment = (BASE_SPEED * 0.4) * speedMultiplier;
     
     setHeadDistance(prev => prev + increment);
     requestRef.current = requestAnimationFrame(animate);
@@ -248,6 +247,7 @@ export function ArcadeMode({
             </filter>
           </defs>
 
+          {/* Arcane Track Styling */}
           <path 
             ref={pathRef}
             d="M -50, 150 L 700, 150 Q 900, 150 900, 300 Q 900, 450 700, 450 L 150, 450" 
@@ -265,9 +265,11 @@ export function ArcadeMode({
             className="opacity-40"
           />
           
+          {/* Word Chain Beads */}
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
+              // Optimization: Only render beads that are on the screen
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
@@ -300,6 +302,7 @@ export function ArcadeMode({
             })}
           </g>
 
+          {/* Portal / End Hole */}
           <g transform="translate(150, 450)">
             <circle r="55" fill="#020617" />
             <circle r="44" fill="none" stroke="#4338ca" strokeWidth="2" strokeDasharray="5,5" className="animate-spin" style={{ animationDuration: '10s' }} />
@@ -307,6 +310,7 @@ export function ArcadeMode({
         </svg>
       </div>
 
+      {/* Control Panel Area */}
       <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50 h-[30vh] overflow-hidden">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
