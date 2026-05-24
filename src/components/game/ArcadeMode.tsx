@@ -91,29 +91,26 @@ export function ArcadeMode({
       const nextDistance = prev + BASE_SPEED * speedMultiplier;
 
       if (pathLength > 0 && nextDistance >= pathLength) {
-        setLives(l => {
-          const nextLives = l - 1;
-          if (nextLives <= 0) setGameState("gameover");
-          return nextLives;
-        });
-        setFlashRed(true);
-        setTimeout(() => setFlashRed(false), 300);
-        
-        setWordChain(prevChain => {
-          const newChain = [...prevChain];
-          newChain.shift();
-          newChain.push(addWordToChain());
-          return newChain;
-        });
-        
-        return nextDistance; 
+        // If lives > 1, mercy reset. If lives <= 1, game over.
+        if (lives > 1) {
+          setLives(l => l - 1);
+          setFlashRed(true);
+          setTimeout(() => setFlashRed(false), 300);
+          // Safety Reset: Prevent chain reaction by resetting distance and chain
+          setWordChain(Array.from({ length: 15 }, () => addWordToChain()));
+          return 0; 
+        } else {
+          setLives(0);
+          setGameState("gameover");
+          return nextDistance;
+        }
       }
 
       return nextDistance;
     });
 
     requestRef.current = requestAnimationFrame(animate);
-  }, [gameState, score, pathLength, addWordToChain]);
+  }, [gameState, score, pathLength, addWordToChain, lives]);
 
   useEffect(() => {
     if (gameState === "playing") {
@@ -287,16 +284,13 @@ export function ArcadeMode({
                     filter={isLeader ? "url(#glow)" : undefined}
                     className={cn(isLeader && "animate-pulse")}
                   />
-                  <text 
-                    textAnchor="middle" 
-                    dominantBaseline="central" 
-                    fill="white" 
-                    fontSize="18" 
-                    fontWeight="bold"
-                    style={{ pointerEvents: 'none', textTransform: 'uppercase' }}
-                  >
-                    {bead.english}
-                  </text>
+                  <foreignObject x="-44" y="-44" width="88" height="88">
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <span className="text-white font-bold text-center leading-tight break-words text-[11px] uppercase pointer-events-none select-none">
+                        {bead.english}
+                      </span>
+                    </div>
+                  </foreignObject>
                 </g>
               );
             })}
