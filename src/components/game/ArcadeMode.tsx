@@ -83,17 +83,22 @@ export function ArcadeMode({
     }
   }, [gameState]);
 
-  // Safe side-effect handler for when a bead reaches the end
+  // CRITICAL FIX: Safe side-effect handler for when a bead reaches the end
+  // This logic is now inside useEffect to prevent setState during render errors.
   useEffect(() => {
     if (gameState === "playing" && pathLength > 0 && headDistance >= pathLength) {
       if (lives > 1) {
+        // Mercy Reset: Player loses one life but the game resets position to prevent chain reaction
         setLives(l => l - 1);
         setFlashRed(true);
         setTimeout(() => setFlashRed(false), 300);
-        // Reset the chain to prevent chain reaction
-        setWordChain(Array.from({ length: 15 }, () => addWordToChain()));
+        
+        // Reset the chain and distance to clear the track
+        const newChain = Array.from({ length: 15 }, () => addWordToChain());
+        setWordChain(newChain);
         setHeadDistance(0);
       } else {
+        // Last life lost
         setLives(0);
         setGameState("gameover");
       }
@@ -104,7 +109,7 @@ export function ArcadeMode({
     if (gameState !== "playing") return;
 
     const speedMultiplier = 1 + Math.floor(score / 5) * 0.15;
-    const increment = BASE_SPEED * speedMultiplier;
+    const increment = (BASE_SPEED * 0.4) * speedMultiplier; // Reduced speed factor
     
     setHeadDistance(prev => prev + increment);
     requestRef.current = requestAnimationFrame(animate);
@@ -143,7 +148,6 @@ export function ArcadeMode({
   const getPoint = (distance: number) => {
     if (!pathRef.current) return { x: -100, y: -100 };
     try {
-        // Clamp distance within valid range for path
         const clampedDist = Math.max(0, Math.min(distance, pathLength || 1000));
         return pathRef.current.getPointAtLength(clampedDist);
     } catch (e) {
@@ -264,7 +268,6 @@ export function ArcadeMode({
           <g className="beads-group">
             {wordChain.map((bead, index) => {
               const distance = headDistance - (index * BEAD_DIAMETER);
-              // Hide beads that haven't entered or have exited
               if (distance < -50 || (pathLength > 0 && distance > pathLength + 50)) return null;
               
               const point = getPoint(distance);
