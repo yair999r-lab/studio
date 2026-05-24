@@ -91,12 +91,10 @@ export function ArcadeMode({
       const nextDistance = prev + BASE_SPEED * speedMultiplier;
 
       if (pathLength > 0 && nextDistance >= pathLength) {
-        // If lives > 1, mercy reset. If lives <= 1, game over.
         if (lives > 1) {
           setLives(l => l - 1);
           setFlashRed(true);
           setTimeout(() => setFlashRed(false), 300);
-          // Safety Reset: Prevent chain reaction by resetting distance and chain
           setWordChain(Array.from({ length: 15 }, () => addWordToChain()));
           return 0; 
         } else {
@@ -285,8 +283,8 @@ export function ArcadeMode({
                     className={cn(isLeader && "animate-pulse")}
                   />
                   <foreignObject x="-44" y="-44" width="88" height="88">
-                    <div className="w-full h-full flex items-center justify-center p-2">
-                      <span className="text-white font-bold text-center leading-tight break-words text-[11px] uppercase pointer-events-none select-none">
+                    <div className="w-full h-full flex items-center justify-center p-2 text-center text-white">
+                      <span className="text-sm font-bold leading-tight break-words uppercase pointer-events-none select-none">
                         {bead.english}
                       </span>
                     </div>
@@ -303,7 +301,7 @@ export function ArcadeMode({
         </svg>
       </div>
 
-      <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50">
+      <div className="shrink-0 py-6 px-4 bg-slate-950 border-t border-white/5 flex flex-col justify-center items-center z-50 h-[30vh] overflow-hidden">
         <div className="max-w-4xl w-full">
           {wordChain.length > 0 && headDistance > 0 ? (
             <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-bottom-5">
@@ -324,18 +322,20 @@ export function ArcadeMode({
               ))}
             </div>
           ) : (
-            <div className="text-indigo-400 font-bold uppercase tracking-widest animate-pulse">
-              Establishing Nexus...
-            </div>
-          )}
-          
-          {isPenalty && (
-            <div className="text-center mt-4">
-              <span className="text-rose-400 text-sm font-bold uppercase tracking-widest animate-pulse">
-                SYSTEM PENALTY ACTIVE
+            <div className="text-center">
+              <span className="text-indigo-400 font-bold uppercase tracking-widest animate-pulse">
+                Establishing Nexus...
               </span>
             </div>
           )}
+          
+          <div className="h-10 flex items-center justify-center mt-4">
+            {isPenalty && (
+              <span className="text-rose-400 text-sm font-bold uppercase tracking-widest animate-pulse">
+                SYSTEM PENALTY ACTIVE
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
